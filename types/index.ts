@@ -1,6 +1,7 @@
 // ─── Profile ─────────────────────────────────────────────────────────────────
 
-export type ProfileType = 'user' | 'vet' | 'clinic'
+export type ProfileType = 'user' | 'vet' | 'clinic' | 'fundacion'
+export type ProfileRole = 'user' | 'admin'
 
 export interface GeoPoint {
   lat: number
@@ -28,11 +29,16 @@ export interface Profile {
   id: string
   user_id: string
   type: ProfileType
+  role: ProfileRole
+  verified: boolean
   name: string
   avatar_url: string | null
   bio: string | null
   location: GeoPoint | null
   phone: string | null
+  country: string | null
+  region: string | null
+  city_slug: string | null
   created_at: string
 }
 
@@ -123,13 +129,7 @@ export interface PetSighting {
 
 export type AlertSeverity = 1 | 2 | 3 | 4 | 5
 export type AlertStatus = 'active' | 'in_progress' | 'resolved'
-export type AlertCategory =
-  | 'injured'
-  | 'abandoned'
-  | 'abuse'
-  | 'stray'
-  | 'emergency'
-  | 'other'
+export type AlertCategory = 'lost' | 'injury' | 'abuse' | 'abandonment' | 'emergency' | 'catastrophe'
 
 export interface CommunityAlert {
   id: string
@@ -264,4 +264,34 @@ export interface AuthState {
   vetProfile: VetProfile | null
   clinicProfile: ClinicProfile | null
   isLoading: boolean
+}
+
+// ─── Org / Enum / Geo types (migration 1.2) ──────────────────────────────────
+
+export type CatastropheSubtype = 'earthquake' | 'flood' | 'fire' | 'other'
+export type BroadcastScope = 'city' | 'region' | 'country'
+export type ApplicationStatus = 'pending' | 'approved' | 'rejected' | 'withdrawn'
+export type ContractStatus = 'active' | 'completed' | 'cancelled'
+export type SessionType = 'photo' | 'video'
+export type SessionStatus = 'scheduled' | 'completed' | 'missed'
+export type AdoptionSex = 'male' | 'female' | 'unknown'
+export type AdoptionHealth = 'healthy' | 'treatment' | 'chronic' | 'special_needs'
+
+export interface OrganizationProfile {
+  id: string
+  profile_id: string
+  org_name: string
+  logo_url: string | null
+  description: string | null
+  contact_email: string | null
+  contact_phone: string | null
+  website: string | null
+  address: string | null
+  gps: { lat: number; lng: number } | null
+  created_at: string
+  updated_at: string
+}
+
+export interface OrgWithProfile extends OrganizationProfile {
+  profile: Profile
 }
