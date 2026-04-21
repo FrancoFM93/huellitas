@@ -129,7 +129,7 @@ export interface PetSighting {
 
 export type AlertSeverity = 1 | 2 | 3 | 4 | 5
 export type AlertStatus = 'active' | 'in_progress' | 'resolved'
-export type AlertCategory = 'lost' | 'injury' | 'abuse' | 'abandonment' | 'emergency' | 'catastrophe'
+export type AlertCategory = 'injured' | 'abandoned' | 'abuse' | 'stray' | 'emergency' | 'other' | 'catastrophe'
 
 export interface CommunityAlert {
   id: string
