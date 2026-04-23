@@ -5,13 +5,50 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import * as WebBrowser from 'expo-web-browser'
+import * as Linking from 'expo-linking'
 import { supabase } from '@/lib/supabase'
 import { Colors } from '@/constants/colors'
+
+WebBrowser.maybeCompleteAuthSession()
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false)
+
+  const handleGoogle = async () => {
+    try {
+      setGoogleLoading(true)
+      const redirectTo = Linking.createURL('/auth-callback')
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo, skipBrowserRedirect: true },
+      })
+      if (error) throw error
+      if (!data?.url) throw new Error('No se pudo iniciar OAuth')
+
+      const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
+      if (result.type !== 'success' || !result.url) {
+        setGoogleLoading(false)
+        return
+      }
+
+      const parsed = Linking.parse(result.url)
+      const code = (parsed.queryParams?.code as string | undefined) ?? null
+      if (!code) throw new Error('Respuesta de Google sin código')
+
+      const { error: exErr } = await supabase.auth.exchangeCodeForSession(code)
+      if (exErr) throw exErr
+      // Navigation handled by auth listener in _layout.tsx
+    } catch (e: any) {
+      Alert.alert('Error', e?.message ?? 'No se pudo iniciar sesión con Google')
+    } finally {
+      setGoogleLoading(false)
+    }
+  }
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -85,6 +122,28 @@ export default function Login() {
               : <Text style={styles.btnText}>Ingresar</Text>
             }
           </TouchableOpacity>
+
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>o continúa con</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          <TouchableOpacity
+            style={[styles.googleBtn, googleLoading && styles.btnDisabled]}
+            onPress={handleGoogle}
+            disabled={googleLoading}
+          >
+            {googleLoading
+              ? <ActivityIndicator color={Colors.text} />
+              : (
+                <>
+                  <Text style={styles.googleIcon}>G</Text>
+                  <Text style={styles.googleBtnText}>Continuar con Google</Text>
+                </>
+              )
+            }
+          </TouchableOpacity>
         </View>
 
         <View style={styles.footer}>
@@ -129,6 +188,32 @@ const styles = StyleSheet.create({
   },
   btnDisabled: { opacity: 0.6 },
   btnText: { color: Colors.white, fontSize: 16, fontWeight: '700' },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
+  dividerText: { fontSize: 12, color: Colors.textMuted },
+  googleBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    borderRadius: 14,
+    paddingVertical: 14,
+  },
+  googleIcon: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#4285F4',
+  },
+  googleBtnText: { color: Colors.text, fontSize: 15, fontWeight: '600' },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',

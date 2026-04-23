@@ -728,7 +728,7 @@ ALTER TABLE alerts
 
 ALTER TABLE alerts DROP CONSTRAINT IF EXISTS alerts_category_check;
 ALTER TABLE alerts ADD CONSTRAINT alerts_category_check
-  CHECK (category IN ('lost','injury','abuse','abandonment','emergency','catastrophe'));
+  CHECK (category IN ('injured','abandoned','abuse','stray','emergency','other','catastrophe'));
 
 CREATE INDEX IF NOT EXISTS idx_alerts_country_city ON alerts(country, city_slug);
 
