@@ -149,7 +149,7 @@ export default function Onboarding() {
         contact_phone: contactPhone || null,
         website: website || null,
         address: fundAddress || null,
-        gps: gps ? `POINT(${gps.lng} ${gps.lat})` : null,
+        gps: gps ?? null,
       })
 
       if (orgError) {
