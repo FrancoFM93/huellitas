@@ -8,15 +8,22 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import * as WebBrowser from 'expo-web-browser'
 import * as Linking from 'expo-linking'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 
 WebBrowser.maybeCompleteAuthSession()
 
 export default function Login() {
+  const { setSession, fetchProfile } = useAuthStore()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [googleLoading, setGoogleLoading] = useState(false)
+
+  const routeAfterLogin = async () => {
+    const { profile } = useAuthStore.getState()
+    router.replace(profile ? '/(tabs)' : '/(auth)/onboarding')
+  }
 
   const handleGoogle = async () => {
     try {
@@ -40,9 +47,13 @@ export default function Login() {
       const code = (parsed.queryParams?.code as string | undefined) ?? null
       if (!code) throw new Error('Respuesta de Google sin código')
 
-      const { error: exErr } = await supabase.auth.exchangeCodeForSession(code)
+      const { data: exData, error: exErr } = await supabase.auth.exchangeCodeForSession(code)
       if (exErr) throw exErr
-      router.replace('/')
+      if (exData.session) {
+        setSession(exData.session)
+        await fetchProfile(exData.session.user.id)
+      }
+      await routeAfterLogin()
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'No se pudo iniciar sesión con Google')
     } finally {
@@ -56,16 +67,24 @@ export default function Login() {
       return
     }
     setLoading(true)
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    setLoading(false)
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
+      setLoading(false)
       Alert.alert('Error', error.message === 'Invalid login credentials'
         ? 'Email o contraseña incorrectos'
         : error.message
       )
       return
     }
-    router.replace('/')
+    if (!data.session) {
+      setLoading(false)
+      Alert.alert('Error', 'No se obtuvo sesión. Verifica email o contraseña.')
+      return
+    }
+    setSession(data.session)
+    await fetchProfile(data.session.user.id)
+    setLoading(false)
+    await routeAfterLogin()
   }
 
   return (
