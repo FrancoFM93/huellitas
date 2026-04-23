@@ -14,6 +14,7 @@ const PROFILE_TYPES: { type: ProfileType; label: string; icon: string; desc: str
   { type: 'user', label: 'Dueño / Adoptante', icon: '🏠', desc: 'Registro mascotas y participo en la comunidad' },
   { type: 'vet', label: 'Veterinario', icon: '🩺', desc: 'Ofrezco atención veterinaria' },
   { type: 'clinic', label: 'Clínica Veterinaria', icon: '🏥', desc: 'Represento una clínica o consultorio' },
+  { type: 'fundacion', label: 'Fundación / ONG', icon: '🏛️', desc: 'Soy una organización que ayuda a animales' },
 ]
 
 export default function Register() {

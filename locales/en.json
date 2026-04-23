@@ -51,6 +51,8 @@
     "profile_vet_desc": "I offer veterinary services",
     "profile_clinic": "Veterinary Clinic",
     "profile_clinic_desc": "I represent a clinic",
+    "profile_fundacion": "Foundation / NGO",
+    "profile_fundacion_desc": "I'm an organization that helps animals",
     "next": "Next",
     "full_name": "Full name",
     "full_name_placeholder": "Your name",
