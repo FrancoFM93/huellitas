@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { Session } from '@supabase/supabase-js'
-import type { Profile, VetProfile, ClinicProfile } from '@/types'
+import type { Profile, VetProfile, ClinicProfile, OrganizationProfile } from '@/types'
 import { supabase } from '@/lib/supabase'
 
 interface AuthStore {
@@ -8,6 +8,7 @@ interface AuthStore {
   profile: Profile | null
   vetProfile: VetProfile | null
   clinicProfile: ClinicProfile | null
+  organizationProfile: OrganizationProfile | null
   isLoading: boolean
 
   setSession: (session: Session | null) => void
@@ -24,6 +25,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   profile: null,
   vetProfile: null,
   clinicProfile: null,
+  organizationProfile: null,
   isLoading: true,
 
   setSession: (session) => set({ session }),
@@ -63,6 +65,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ clinicProfile: cp ?? null })
     }
 
+    if (profile.type === 'fundacion') {
+      const { data: org } = await supabase
+        .from('organization_profiles')
+        .select('*')
+        .eq('profile_id', profile.id)
+        .single()
+      set({ organizationProfile: org ?? null })
+    } else {
+      set({ organizationProfile: null })
+    }
+
     set({ isLoading: false })
   },
 
@@ -77,6 +90,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       profile: null,
       vetProfile: null,
       clinicProfile: null,
+      organizationProfile: null,
       isLoading: false,
     }),
 }))
