@@ -17,8 +17,8 @@ CREATE POLICY "photos_auth_upload" ON storage.objects
 
 -- Users can replace their own files
 CREATE POLICY "photos_own_update" ON storage.objects
-  FOR UPDATE USING (bucket_id = 'photos' AND owner = auth.uid()::text);
+  FOR UPDATE USING (bucket_id = 'photos' AND owner = auth.uid());
 
 -- Users can delete their own files
 CREATE POLICY "photos_own_delete" ON storage.objects
-  FOR DELETE USING (bucket_id = 'photos' AND owner = auth.uid()::text);
+  FOR DELETE USING (bucket_id = 'photos' AND owner = auth.uid());
