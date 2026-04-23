@@ -42,7 +42,7 @@ export default function Login() {
 
       const { error: exErr } = await supabase.auth.exchangeCodeForSession(code)
       if (exErr) throw exErr
-      // Navigation handled by auth listener in _layout.tsx
+      router.replace('/')
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'No se pudo iniciar sesión con Google')
     } finally {
@@ -63,8 +63,9 @@ export default function Login() {
         ? 'Email o contraseña incorrectos'
         : error.message
       )
+      return
     }
-    // Navigation handled by auth listener in _layout.tsx
+    router.replace('/')
   }
 
   return (
