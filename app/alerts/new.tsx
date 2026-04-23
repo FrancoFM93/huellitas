@@ -9,7 +9,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useLocation } from '@/lib/useLocation'
 import { Colors } from '@/constants/colors'
-import type { AlertCategory, AlertSeverity } from '@/types'
+import type { AlertCategory, AlertSeverity, CatastropheSubtype } from '@/types'
 
 const CATEGORIES: { value: AlertCategory; label: string; icon: string }[] = [
   { value: 'injured', label: 'Animal herido', icon: '🤕' },
@@ -17,7 +17,15 @@ const CATEGORIES: { value: AlertCategory; label: string; icon: string }[] = [
   { value: 'abuse', label: 'Maltrato', icon: '⚠️' },
   { value: 'stray', label: 'Animal callejero', icon: '🐕' },
   { value: 'emergency', label: 'Emergencia', icon: '🚨' },
+  { value: 'catastrophe', label: 'Catástrofe', icon: '🌋' },
   { value: 'other', label: 'Otro', icon: '📢' },
+]
+
+const CATASTROPHE_SUBTYPES: { value: CatastropheSubtype; label: string; icon: string }[] = [
+  { value: 'earthquake', label: 'Terremoto', icon: '🏚️' },
+  { value: 'flood', label: 'Inundación', icon: '🌊' },
+  { value: 'fire', label: 'Incendio', icon: '🔥' },
+  { value: 'other', label: 'Otro', icon: '⚠️' },
 ]
 
 const SEVERITIES: { level: AlertSeverity; label: string; color: string; desc: string }[] = [
@@ -34,6 +42,7 @@ export default function NewAlert() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [category, setCategory] = useState<AlertCategory>('injured')
+  const [catastropheSubtype, setCatastropheSubtype] = useState<CatastropheSubtype>('earthquake')
   const [severity, setSeverity] = useState<AlertSeverity>(3)
   const [address, setAddress] = useState('')
   const [lat, setLat] = useState(0)
@@ -65,6 +74,9 @@ export default function NewAlert() {
       title: title.trim(),
       description: description.trim(),
       category,
+      catastrophe_subtype: category === 'catastrophe' ? catastropheSubtype : null,
+      country: profile.country ?? null,
+      city_slug: profile.city_slug ?? null,
       severity,
       address: address.trim(),
       lat,
@@ -125,6 +137,27 @@ export default function NewAlert() {
             ))}
           </View>
         </View>
+
+        {/* Catastrophe subtype */}
+        {category === 'catastrophe' && (
+          <View style={styles.field}>
+            <Text style={styles.label}>Tipo de catástrofe</Text>
+            <View style={styles.categoryGrid}>
+              {CATASTROPHE_SUBTYPES.map(({ value, label, icon }) => (
+                <TouchableOpacity
+                  key={value}
+                  style={[styles.catBtn, catastropheSubtype === value && styles.catBtnActive]}
+                  onPress={() => setCatastropheSubtype(value)}
+                >
+                  <Text style={styles.catIcon}>{icon}</Text>
+                  <Text style={[styles.catLabel, catastropheSubtype === value && styles.catLabelActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
 
         {/* Severity */}
         <View style={styles.field}>
