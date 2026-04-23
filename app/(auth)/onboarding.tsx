@@ -1,13 +1,16 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, ActivityIndicator, Alert, Switch,
+  ScrollView, ActivityIndicator, Alert, Switch, Image,
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
+import { usePhotoUpload } from '@/lib/usePhotoUpload'
+import { useLocation } from '@/lib/useLocation'
+import { slugify } from '@/lib/geoSlug'
 
 const VET_SPECIALTIES = [
   'Medicina General', 'Cirugía', 'Dermatología', 'Cardiología',
@@ -23,6 +26,10 @@ export default function Onboarding() {
   const { profile, fetchProfile } = useAuthStore()
   const [loading, setLoading] = useState(false)
 
+  // Photo + location hooks (used by fundacion branch)
+  const { upload, uploading } = usePhotoUpload()
+  const { getLocation, locating } = useLocation()
+
   // Vet fields
   const [license, setLicense] = useState('')
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([])
@@ -36,6 +43,19 @@ export default function Onboarding() {
   const [clinicEmail, setClinicEmail] = useState('')
   const [selectedServices, setSelectedServices] = useState<string[]>([])
   const [emergency24h, setEmergency24h] = useState(false)
+
+  // Fundacion fields
+  const [orgName, setOrgName] = useState('')
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [description, setDescription] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [contactPhone, setContactPhone] = useState('')
+  const [website, setWebsite] = useState('')
+  const [fundAddress, setFundAddress] = useState('')
+  const [gps, setGps] = useState<{ lat: number; lng: number } | null>(null)
+  const [city, setCity] = useState('')
+  const [region, setRegion] = useState('')
+  const [country, setCountry] = useState('CL')
 
   const toggleSpecialty = (s: string) =>
     setSelectedSpecialties((prev) =>
@@ -98,6 +118,47 @@ export default function Onboarding() {
       }
     }
 
+    if (profile.type === 'fundacion') {
+      if (!orgName || !city) {
+        Alert.alert('Requerido', 'El nombre de la organización y la ciudad son obligatorios')
+        setLoading(false)
+        return
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          country: country || 'CL',
+          region: region || null,
+          city_slug: slugify(city),
+        })
+        .eq('id', profile.id)
+
+      if (profileError) {
+        Alert.alert('Error', profileError.message)
+        setLoading(false)
+        return
+      }
+
+      const { error: orgError } = await supabase.from('organization_profiles').insert({
+        profile_id: profile.id,
+        org_name: orgName,
+        logo_url: logoUrl || null,
+        description: description || null,
+        contact_email: contactEmail || null,
+        contact_phone: contactPhone || null,
+        website: website || null,
+        address: fundAddress || null,
+        gps: gps ? `POINT(${gps.lng} ${gps.lat})` : null,
+      })
+
+      if (orgError) {
+        Alert.alert('Error', orgError.message)
+        setLoading(false)
+        return
+      }
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
     if (user) await fetchProfile(user.id)
 
@@ -126,7 +187,9 @@ export default function Onboarding() {
             ? 'Cuéntanos un poco más sobre ti'
             : profile.type === 'vet'
             ? 'Agrega tu información profesional'
-            : 'Agrega los datos de tu clínica'}
+            : profile.type === 'clinic'
+            ? 'Agrega los datos de tu clínica'
+            : 'Agrega los datos de tu fundación'}
         </Text>
 
         {profile.type === 'user' && (
@@ -268,6 +331,172 @@ export default function Onboarding() {
           </View>
         )}
 
+        {profile.type === 'fundacion' && (
+          <View style={styles.form}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Nombre de la organización *</Text>
+              <TextInput
+                style={styles.input}
+                value={orgName}
+                onChangeText={setOrgName}
+                placeholder="Ej: Fundación Patitas Felices"
+                placeholderTextColor={Colors.textDisabled}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Logo de la organización</Text>
+              {logoUrl && (
+                <Image
+                  source={{ uri: logoUrl }}
+                  style={styles.logoPreview}
+                  resizeMode="cover"
+                />
+              )}
+              <TouchableOpacity
+                style={[styles.btn, (uploading) && styles.btnDisabled]}
+                onPress={async () => {
+                  const url = await upload({ folder: 'logos' })
+                  if (url) setLogoUrl(url)
+                }}
+                disabled={uploading}
+              >
+                {uploading
+                  ? <ActivityIndicator color={Colors.white} />
+                  : <Text style={styles.btnText}>
+                      {logoUrl ? 'Cambiar logo' : 'Subir logo'}
+                    </Text>
+                }
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Descripción</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="Contanos sobre la misión y actividades de tu fundación"
+                placeholderTextColor={Colors.textDisabled}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Email de contacto</Text>
+              <TextInput
+                style={styles.input}
+                value={contactEmail}
+                onChangeText={setContactEmail}
+                placeholder="contacto@fundacion.org"
+                placeholderTextColor={Colors.textDisabled}
+                keyboardType="email-address"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Teléfono de contacto</Text>
+              <TextInput
+                style={styles.input}
+                value={contactPhone}
+                onChangeText={setContactPhone}
+                placeholder="+56 9 0000 0000"
+                placeholderTextColor={Colors.textDisabled}
+                keyboardType="phone-pad"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Sitio web</Text>
+              <TextInput
+                style={styles.input}
+                value={website}
+                onChangeText={setWebsite}
+                placeholder="https://mifundacion.org"
+                placeholderTextColor={Colors.textDisabled}
+                keyboardType="url"
+                autoCapitalize="none"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Dirección</Text>
+              <TextInput
+                style={styles.input}
+                value={fundAddress}
+                onChangeText={setFundAddress}
+                placeholder="Calle, número, ciudad"
+                placeholderTextColor={Colors.textDisabled}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Ubicación GPS</Text>
+              {gps && (
+                <Text style={styles.gpsValue}>
+                  {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)}
+                </Text>
+              )}
+              <TouchableOpacity
+                style={[styles.btn, locating && styles.btnDisabled]}
+                onPress={async () => {
+                  const loc = await getLocation()
+                  if (loc) {
+                    setGps({ lat: loc.lat, lng: loc.lng })
+                    if (!fundAddress && loc.address) setFundAddress(loc.address)
+                  }
+                }}
+                disabled={locating}
+              >
+                {locating
+                  ? <ActivityIndicator color={Colors.white} />
+                  : <Text style={styles.btnText}>
+                      {gps ? 'Actualizar ubicación' : 'Obtener ubicación actual'}
+                    </Text>
+                }
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Ciudad *</Text>
+              <TextInput
+                style={styles.input}
+                value={city}
+                onChangeText={setCity}
+                placeholder="Ej: Santiago"
+                placeholderTextColor={Colors.textDisabled}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Región</Text>
+              <TextInput
+                style={styles.input}
+                value={region}
+                onChangeText={setRegion}
+                placeholder="Ej: Metropolitana"
+                placeholderTextColor={Colors.textDisabled}
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>País</Text>
+              <TextInput
+                style={styles.input}
+                value={country}
+                onChangeText={setCountry}
+                placeholder="CL"
+                placeholderTextColor={Colors.textDisabled}
+                autoCapitalize="characters"
+                maxLength={2}
+              />
+            </View>
+          </View>
+        )}
+
         <View style={styles.actions}>
           {profile.type !== 'user' && (
             <TouchableOpacity
@@ -342,6 +571,23 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1.5,
     borderColor: Colors.border,
+  },
+  logoPreview: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+  },
+  textArea: {
+    height: 100,
+    paddingTop: 14,
+  },
+  gpsValue: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginBottom: 8,
   },
   actions: { gap: 12, marginTop: 32 },
   btn: {
