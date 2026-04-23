@@ -7,11 +7,12 @@ import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Image } from 'react-native'
 import { supabase } from '@/lib/supabase'
 import { Colors } from '@/constants/colors'
-import type { VetWithProfile, ClinicWithProfile } from '@/types'
+import type { VetWithProfile, ClinicWithProfile, OrgWithProfile } from '@/types'
 
-type Tab = 'vets' | 'clinics'
+type Tab = 'vets' | 'clinics' | 'orgs'
 
 async function fetchVets(search: string): Promise<VetWithProfile[]> {
   let query = supabase
@@ -38,6 +39,16 @@ async function fetchClinics(search: string): Promise<ClinicWithProfile[]> {
 
   const { data } = await query.limit(30)
   return (data ?? []) as ClinicWithProfile[]
+}
+
+async function fetchOrgs(search: string): Promise<OrgWithProfile[]> {
+  let query = supabase
+    .from('organization_profiles')
+    .select('*, profile:profiles(*)')
+    .order('created_at', { ascending: false })
+  if (search) query = query.ilike('org_name', `%${search}%`)
+  const { data } = await query.limit(30)
+  return (data ?? []) as OrgWithProfile[]
 }
 
 function VetCard({ item }: { item: VetWithProfile }) {
@@ -72,6 +83,32 @@ function VetCard({ item }: { item: VetWithProfile }) {
         {item.phone && (
           <Text style={styles.cardContact}>📞 {item.phone}</Text>
         )}
+      </View>
+    </TouchableOpacity>
+  )
+}
+
+function OrgCard({ item }: { item: OrgWithProfile }) {
+  return (
+    <TouchableOpacity
+      style={styles.card}
+      onPress={() => router.push(`/orgs/${item.profile_id}`)}
+      activeOpacity={0.8}
+    >
+      <View style={styles.cardLeft}>
+        <View style={[styles.avatar, styles.avatarOrg]}>
+          {item.logo_url ? (
+            <Image source={{ uri: item.logo_url }} style={{ width: 48, height: 48, borderRadius: 24 }} />
+          ) : (
+            <Text style={styles.avatarText}>🏛️</Text>
+          )}
+        </View>
+      </View>
+      <View style={styles.cardContent}>
+        <Text style={styles.cardName}>
+          {item.org_name}{item.profile?.verified ? ' ✓' : ''}
+        </Text>
+        <Text style={styles.cardContact}>{item.profile?.city_slug ?? ''}</Text>
       </View>
     </TouchableOpacity>
   )
@@ -126,7 +163,13 @@ export default function Search() {
     enabled: tab === 'clinics',
   })
 
-  const loading = tab === 'vets' ? vetsLoading : clinicsLoading
+  const { data: orgs, isLoading: orgsLoading } = useQuery({
+    queryKey: ['orgs', search],
+    queryFn: () => fetchOrgs(search),
+    enabled: tab === 'orgs',
+  })
+
+  const loading = tab === 'vets' ? vetsLoading : tab === 'clinics' ? clinicsLoading : orgsLoading
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -138,7 +181,7 @@ export default function Search() {
             style={styles.searchInput}
             value={search}
             onChangeText={setSearch}
-            placeholder={tab === 'vets' ? t('search.search_vet') : t('search.search_clinic')}
+            placeholder={tab === 'vets' ? t('search.search_vet') : tab === 'clinics' ? t('search.search_clinic') : t('search.search_org')}
             placeholderTextColor={Colors.textDisabled}
           />
         </View>
@@ -159,6 +202,14 @@ export default function Search() {
               {t('search.tab_clinics')}
             </Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, tab === 'orgs' && styles.tabActive]}
+            onPress={() => setTab('orgs')}
+          >
+            <Text style={[styles.tabText, tab === 'orgs' && styles.tabTextActive]}>
+              {t('search.tab_orgs')}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -175,7 +226,7 @@ export default function Search() {
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<EmptyState type="vets" />}
         />
-      ) : (
+      ) : tab === 'clinics' ? (
         <FlatList
           data={clinics ?? []}
           keyExtractor={(item) => item.id}
@@ -183,6 +234,15 @@ export default function Search() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<EmptyState type="clinics" />}
+        />
+      ) : (
+        <FlatList
+          data={orgs ?? []}
+          keyExtractor={(item) => item.profile_id}
+          renderItem={({ item }) => <OrgCard item={item} />}
+          contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={<EmptyState type="orgs" />}
         />
       )}
     </SafeAreaView>
@@ -193,9 +253,9 @@ function EmptyState({ type }: { type: Tab }) {
   const { t } = useTranslation()
   return (
     <View style={styles.empty}>
-      <Text style={styles.emptyIcon}>{type === 'vets' ? '🩺' : '🏥'}</Text>
+      <Text style={styles.emptyIcon}>{type === 'vets' ? '🩺' : type === 'clinics' ? '🏥' : '🏛️'}</Text>
       <Text style={styles.emptyText}>
-        {type === 'vets' ? t('search.empty_vets') : t('search.empty_clinics')}
+        {type === 'vets' ? t('search.empty_vets') : type === 'clinics' ? t('search.empty_clinics') : t('search.empty_orgs')}
       </Text>
     </View>
   )
@@ -259,6 +319,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatarClinic: { backgroundColor: Colors.infoLight },
+  avatarOrg: { backgroundColor: Colors.successLight },
   avatarText: { fontSize: 24 },
   availBadge: {
     flexDirection: 'row',

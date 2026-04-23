@@ -93,7 +93,10 @@
     "emergency_24h": "24hs",
     "fee": "Consulta: ${{amount}}",
     "empty_vets": "No se encontraron veterinarios",
-    "empty_clinics": "No se encontraron clínicas"
+    "empty_clinics": "No se encontraron clínicas",
+    "tab_orgs": "🏛️ ONGs",
+    "search_org": "Buscar organización...",
+    "empty_orgs": "No se encontraron organizaciones"
   },
   "fund": {
     "title": "Fondos y Donaciones",

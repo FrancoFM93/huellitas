@@ -93,7 +93,10 @@
     "emergency_24h": "24h",
     "fee": "Consult: ${{amount}}",
     "empty_vets": "No vets found",
-    "empty_clinics": "No clinics found"
+    "empty_clinics": "No clinics found",
+    "tab_orgs": "🏛️ ONGs",
+    "search_org": "Search organization...",
+    "empty_orgs": "No organizations found"
   },
   "fund": {
     "title": "Funds & Donations",
