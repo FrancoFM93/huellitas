@@ -25,12 +25,27 @@ const AGE_RANGES: { value: string; label: string; desc: string }[] = [
   { value: 'senior', label: 'Mayor', desc: '8+ años' },
 ]
 
+const SEX_OPTIONS: { value: 'male' | 'female' | 'unknown'; label: string; icon: string }[] = [
+  { value: 'male', label: 'Macho', icon: '♂' },
+  { value: 'female', label: 'Hembra', icon: '♀' },
+  { value: 'unknown', label: 'No sé', icon: '?' },
+]
+
+const HEALTH_OPTIONS: { value: 'healthy' | 'treatment' | 'chronic' | 'special_needs'; label: string; desc: string }[] = [
+  { value: 'healthy', label: 'Saludable', desc: 'Sin condiciones' },
+  { value: 'treatment', label: 'En tratamiento', desc: 'Temporal' },
+  { value: 'chronic', label: 'Crónica', desc: 'Medicación permanente' },
+  { value: 'special_needs', label: 'Necesidades especiales', desc: 'Requiere cuidados extra' },
+]
+
 export default function NewAdoption() {
   const { profile } = useAuthStore()
   const [species, setSpecies] = useState<PetSpecies>('dog')
   const [name, setName] = useState('')
   const [breed, setBreed] = useState('')
   const [ageRange, setAgeRange] = useState('puppy')
+  const [sex, setSex] = useState<'male' | 'female' | 'unknown'>('unknown')
+  const [healthStatus, setHealthStatus] = useState<'healthy' | 'treatment' | 'chronic' | 'special_needs'>('healthy')
   const [color, setColor] = useState('')
   const [description, setDescription] = useState('')
   const [location, setLocation] = useState('')
@@ -56,6 +71,8 @@ export default function NewAdoption() {
       species,
       breed: breed.trim() || null,
       age_range: ageRange,
+      sex,
+      health_status: healthStatus,
       color: color.trim() || null,
       description: description.trim(),
       location: location.trim(),
@@ -166,6 +183,23 @@ export default function NewAdoption() {
           </View>
         </View>
 
+        {/* Sex */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Sexo</Text>
+          <View style={styles.ageRow}>
+            {SEX_OPTIONS.map(({ value, label, icon }) => (
+              <TouchableOpacity
+                key={value}
+                style={[styles.ageBtn, sex === value && styles.ageBtnActive]}
+                onPress={() => setSex(value)}
+              >
+                <Text style={[styles.sexIcon, sex === value && styles.ageLabelActive]}>{icon}</Text>
+                <Text style={[styles.ageLabel, sex === value && styles.ageLabelActive]}>{label}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
         {/* Color */}
         <View style={styles.field}>
           <Text style={styles.label}>Color / descripción física</Text>
@@ -227,6 +261,28 @@ export default function NewAdoption() {
               value={goodWithPets}
               onValueChange={setGoodWithPets}
             />
+          </View>
+        </View>
+
+        {/* Health status */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Estado de salud</Text>
+          <View style={styles.healthCol}>
+            {HEALTH_OPTIONS.map(({ value, label, desc }) => (
+              <TouchableOpacity
+                key={value}
+                style={[styles.healthBtn, healthStatus === value && styles.healthBtnActive]}
+                onPress={() => setHealthStatus(value)}
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.healthLabel, healthStatus === value && styles.healthLabelActive]}>
+                    {label}
+                  </Text>
+                  <Text style={styles.healthDesc}>{desc}</Text>
+                </View>
+                {healthStatus === value && <Text style={styles.healthCheck}>✓</Text>}
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
 
@@ -338,6 +394,23 @@ const styles = StyleSheet.create({
   ageLabel: { fontSize: 12, fontWeight: '700', color: Colors.textSecondary },
   ageLabelActive: { color: Colors.primaryDark },
   ageDesc: { fontSize: 10, color: Colors.textMuted },
+  sexIcon: { fontSize: 18, fontWeight: '800', color: Colors.textSecondary },
+  healthCol: { gap: 8 },
+  healthBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  healthBtnActive: { backgroundColor: Colors.primaryLight, borderColor: Colors.primary },
+  healthLabel: { fontSize: 14, fontWeight: '700', color: Colors.text },
+  healthLabelActive: { color: Colors.primaryDark },
+  healthDesc: { fontSize: 12, color: Colors.textMuted, marginTop: 2 },
+  healthCheck: { fontSize: 18, color: Colors.primary, fontWeight: '800' },
   togglesCard: {
     backgroundColor: Colors.surface,
     borderRadius: 14,
