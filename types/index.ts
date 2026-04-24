@@ -250,6 +250,8 @@ export interface AdoptionPost {
   is_dewormed: boolean
   good_with_kids: boolean
   good_with_pets: boolean
+  sex: 'male' | 'female' | 'unknown'
+  health_status: 'healthy' | 'treatment' | 'chronic' | 'special_needs'
   status: AdoptionStatus
   created_at: string
   updated_at: string

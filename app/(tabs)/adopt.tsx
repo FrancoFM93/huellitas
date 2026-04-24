@@ -50,7 +50,7 @@ function timeAgo(dateStr: string): string {
 async function fetchAdoptions(species: FilterSpecies, search: string): Promise<AdoptionPost[]> {
   let query = supabase
     .from('adoption_posts')
-    .select('*, poster:profiles(id,name,avatar_url,type)')
+    .select('*, poster:profiles(id,name,avatar_url,type,organization_profile:organization_profiles(verified))')
     .eq('status', 'available')
     .order('created_at', { ascending: false })
     .limit(40)
@@ -104,7 +104,17 @@ function AdoptionCard({ item }: { item: AdoptionPost }) {
           <Text style={styles.cardTime}>{timeAgo(item.created_at)}</Text>
         </View>
 
-        <Text style={styles.cardPoster}>por {item.poster?.name ?? 'Anónimo'}</Text>
+        <View style={styles.cardPosterRow}>
+          <Text style={styles.cardPoster}>por {item.poster?.name ?? 'Anónimo'}</Text>
+          {item.poster?.type === 'fundacion' && (
+            <Text style={[
+              styles.cardOrgBadge,
+              (item.poster as any)?.organization_profile?.verified && styles.cardOrgBadgeVerified,
+            ]}>
+              {(item.poster as any)?.organization_profile?.verified ? '🏛️ Verificada' : '🏛️ Fundación'}
+            </Text>
+          )}
+        </View>
       </View>
     </TouchableOpacity>
   )
@@ -307,7 +317,21 @@ const styles = StyleSheet.create({
   cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
   cardLocation: { fontSize: 11, color: Colors.textMuted, flex: 1 },
   cardTime: { fontSize: 11, color: Colors.textDisabled },
-  cardPoster: { fontSize: 11, color: Colors.textMuted },
+  cardPoster: { fontSize: 11, color: Colors.textMuted, flex: 1 },
+  cardPosterRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  cardOrgBadge: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.primaryDark,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 8,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+  },
+  cardOrgBadgeVerified: {
+    color: Colors.success,
+    backgroundColor: Colors.successLight,
+  },
   empty: { flex: 1, alignItems: 'center', paddingTop: 80, gap: 8 },
   emptyIcon: { fontSize: 52, marginBottom: 4 },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: Colors.text },

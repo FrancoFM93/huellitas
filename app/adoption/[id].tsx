@@ -21,6 +21,19 @@ const AGE_LABELS: Record<string, string> = {
   senior: 'Mayor (8+ años)',
 }
 
+const SEX_LABELS: Record<string, { icon: string; label: string }> = {
+  male: { icon: '♂', label: 'Macho' },
+  female: { icon: '♀', label: 'Hembra' },
+  unknown: { icon: '?', label: 'Sexo no especificado' },
+}
+
+const HEALTH_LABELS: Record<string, { icon: string; label: string; color: string }> = {
+  healthy: { icon: '💚', label: 'Saludable', color: Colors.success },
+  treatment: { icon: '🩹', label: 'En tratamiento', color: Colors.warning },
+  chronic: { icon: '💊', label: 'Condición crónica', color: Colors.info },
+  special_needs: { icon: '🫶', label: 'Necesidades especiales', color: Colors.primary },
+}
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60000)
@@ -41,7 +54,7 @@ export default function AdoptionDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from('adoption_posts')
-        .select('*, poster:profiles(id,name,avatar_url,type,phone)')
+        .select('*, poster:profiles(id,name,avatar_url,type,phone,organization_profile:organization_profiles(verified))')
         .eq('id', id)
         .single()
       return data as AdoptionPost
@@ -126,6 +139,24 @@ export default function AdoptionDetail() {
           <Text style={styles.age}>{AGE_LABELS[post.age_range] ?? post.age_range}</Text>
         </View>
 
+        {/* Sex + health status */}
+        <View style={styles.chipsRow}>
+          {post.sex && post.sex !== 'unknown' && (
+            <Chip
+              icon={SEX_LABELS[post.sex].icon}
+              label={SEX_LABELS[post.sex].label}
+              color={post.sex === 'female' ? '#D94F8A' : Colors.info}
+            />
+          )}
+          {post.health_status && (
+            <Chip
+              icon={HEALTH_LABELS[post.health_status].icon}
+              label={HEALTH_LABELS[post.health_status].label}
+              color={HEALTH_LABELS[post.health_status].color}
+            />
+          )}
+        </View>
+
         {/* Health chips */}
         <View style={styles.chipsRow}>
           {post.is_vaccinated && <Chip icon="💉" label="Vacunado/a" color={Colors.success} />}
@@ -160,7 +191,16 @@ export default function AdoptionDetail() {
               </Text>
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.posterName}>{posterProfile?.name ?? 'Anónimo'}</Text>
+              <View style={styles.posterNameRow}>
+                <Text style={styles.posterName}>{posterProfile?.name ?? 'Anónimo'}</Text>
+                {posterProfile?.type === 'fundacion' && (
+                  <View style={[styles.orgBadge, posterProfile?.organization_profile?.verified && styles.orgBadgeVerified]}>
+                    <Text style={styles.orgBadgeText}>
+                      {posterProfile?.organization_profile?.verified ? '🏛️ Fundación verificada' : '🏛️ Fundación'}
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.posterTime}>{timeAgo(post.created_at)}</Text>
             </View>
           </View>
@@ -299,8 +339,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   posterAvatarIcon: { fontSize: 20 },
+  posterNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
   posterName: { fontSize: 14, fontWeight: '700', color: Colors.text },
   posterTime: { fontSize: 12, color: Colors.textMuted },
+  orgBadge: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  orgBadgeVerified: { backgroundColor: Colors.successLight, borderColor: Colors.success },
+  orgBadgeText: { fontSize: 11, color: Colors.primaryDark, fontWeight: '700' },
   contactCard: {
     backgroundColor: Colors.primaryLight,
     borderRadius: 16,
