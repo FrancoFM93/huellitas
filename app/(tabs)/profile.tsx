@@ -248,6 +248,16 @@ export default function Profile() {
             </TouchableOpacity>
           )}
 
+          {profile.type !== 'user' && (
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => router.push('/profile/my-posts')}
+            >
+              <Text style={styles.actionIcon}>🏠</Text>
+              <Text style={styles.actionText}>Mis publicaciones</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => router.push('/profile/edit')}
