@@ -238,6 +238,16 @@ export default function Profile() {
 
         {/* Actions */}
         <View style={styles.actions}>
+          {profile.type === 'user' && (
+            <TouchableOpacity
+              style={styles.actionBtn}
+              onPress={() => router.push('/profile/my-applications')}
+            >
+              <Text style={styles.actionIcon}>📋</Text>
+              <Text style={styles.actionText}>Mis solicitudes</Text>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
             style={styles.actionBtn}
             onPress={() => router.push('/profile/edit')}

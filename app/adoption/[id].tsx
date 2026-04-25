@@ -54,7 +54,7 @@ export default function AdoptionDetail() {
     queryFn: async () => {
       const { data } = await supabase
         .from('adoption_posts')
-        .select('*, poster:profiles(id,name,avatar_url,type,phone,organization_profile:organization_profiles(verified))')
+        .select('*, poster:profiles(id,name,avatar_url,type,phone,verified)')
         .eq('id', id)
         .single()
       return data as AdoptionPost
@@ -72,6 +72,35 @@ export default function AdoptionDetail() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['adoption', id] })
       qc.invalidateQueries({ queryKey: ['adoptions'] })
+    },
+    onError: (e: Error) => Alert.alert('Error', e.message),
+  })
+
+  const isPosterOwner = !!post && !!profile && profile.id === post.poster_id
+
+  const { data: apps } = useQuery({
+    queryKey: ['apps', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('adoption_applications')
+        .select('*, applicant:profiles(id,name,avatar_url,phone)')
+        .eq('post_id', id)
+        .order('created_at', { ascending: false })
+      return data ?? []
+    },
+    enabled: isPosterOwner,
+  })
+
+  const approveMutation = useMutation({
+    mutationFn: async (appId: string) => {
+      const { error } = await supabase.rpc('fn_approve_application', { app_id: appId })
+      if (error) throw error
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['apps', id] })
+      qc.invalidateQueries({ queryKey: ['adoption', id] })
+      qc.invalidateQueries({ queryKey: ['adoptions'] })
+      Alert.alert('¡Aprobado!', 'Contrato creado con sesiones de seguimiento.')
     },
     onError: (e: Error) => Alert.alert('Error', e.message),
   })
@@ -194,9 +223,9 @@ export default function AdoptionDetail() {
               <View style={styles.posterNameRow}>
                 <Text style={styles.posterName}>{posterProfile?.name ?? 'Anónimo'}</Text>
                 {posterProfile?.type === 'fundacion' && (
-                  <View style={[styles.orgBadge, posterProfile?.organization_profile?.verified && styles.orgBadgeVerified]}>
+                  <View style={[styles.orgBadge, posterProfile?.verified && styles.orgBadgeVerified]}>
                     <Text style={styles.orgBadgeText}>
-                      {posterProfile?.organization_profile?.verified ? '🏛️ Fundación verificada' : '🏛️ Fundación'}
+                      {posterProfile?.verified ? '🏛️ Fundación verificada' : '🏛️ Fundación'}
                     </Text>
                   </View>
                 )}
@@ -205,6 +234,56 @@ export default function AdoptionDetail() {
             </View>
           </View>
         </View>
+
+        {/* Apply button */}
+        {!isOwner && post.status === 'available' && profile && (
+          <TouchableOpacity
+            style={styles.applyBtn}
+            onPress={() => router.push(`/adoption/apply/${post.id}`)}
+          >
+            <Text style={styles.applyBtnText}>📝 Solicitar adopción</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Applications list (poster only) */}
+        {isOwner && (apps ?? []).length > 0 && (
+          <View style={styles.appsCard}>
+            <Text style={styles.appsTitle}>Solicitudes ({apps!.length})</Text>
+            {apps!.map((a: any) => (
+              <View key={a.id} style={styles.appRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.appName}>{a.applicant?.name ?? 'Anónimo'}</Text>
+                  <Text style={styles.appMessage} numberOfLines={3}>{a.message}</Text>
+                  {a.contact_phone && (
+                    <Text style={styles.appPhone}>📞 {a.contact_phone}</Text>
+                  )}
+                  <Text style={[styles.appStatus, a.status === 'approved' && styles.appStatusApproved, a.status === 'rejected' && styles.appStatusRejected]}>
+                    {a.status === 'pending' ? '⏳ Pendiente' :
+                      a.status === 'approved' ? '✅ Aprobada' :
+                      a.status === 'rejected' ? '❌ Rechazada' : '🚫 Retirada'}
+                  </Text>
+                </View>
+                {a.status === 'pending' && post.status === 'available' && (
+                  <TouchableOpacity
+                    style={styles.approveBtn}
+                    onPress={() =>
+                      Alert.alert(
+                        'Aprobar solicitud',
+                        `Al aprobar a ${a.applicant?.name ?? 'este adoptante'}, se creará un contrato de seguimiento y la publicación se marcará como adoptada.`,
+                        [
+                          { text: 'Cancelar', style: 'cancel' },
+                          { text: 'Aprobar', onPress: () => approveMutation.mutate(a.id) },
+                        ]
+                      )
+                    }
+                  >
+                    <Text style={styles.approveBtnText}>Aprobar</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* Contact */}
         {post.status !== 'adopted' && (
@@ -352,6 +431,43 @@ const styles = StyleSheet.create({
   },
   orgBadgeVerified: { backgroundColor: Colors.successLight, borderColor: Colors.success },
   orgBadgeText: { fontSize: 11, color: Colors.primaryDark, fontWeight: '700' },
+  applyBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  applyBtnText: { color: Colors.white, fontSize: 16, fontWeight: '700' },
+  appsCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 14,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  appsTitle: { fontSize: 16, fontWeight: '700', color: Colors.text },
+  appRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.borderLight,
+  },
+  appName: { fontSize: 14, fontWeight: '700', color: Colors.text },
+  appMessage: { fontSize: 13, color: Colors.textSecondary, marginTop: 4, lineHeight: 18 },
+  appPhone: { fontSize: 12, color: Colors.textMuted, marginTop: 4 },
+  appStatus: { fontSize: 11, color: Colors.textMuted, marginTop: 6, fontWeight: '600' },
+  appStatusApproved: { color: Colors.success },
+  appStatusRejected: { color: Colors.alert },
+  approveBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+  approveBtnText: { color: Colors.white, fontSize: 13, fontWeight: '700' },
   contactCard: {
     backgroundColor: Colors.primaryLight,
     borderRadius: 16,

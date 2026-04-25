@@ -50,7 +50,7 @@ function timeAgo(dateStr: string): string {
 async function fetchAdoptions(species: FilterSpecies, search: string): Promise<AdoptionPost[]> {
   let query = supabase
     .from('adoption_posts')
-    .select('*, poster:profiles(id,name,avatar_url,type,organization_profile:organization_profiles(verified))')
+    .select('*, poster:profiles(id,name,avatar_url,type,verified)')
     .eq('status', 'available')
     .order('created_at', { ascending: false })
     .limit(40)
@@ -109,9 +109,9 @@ function AdoptionCard({ item }: { item: AdoptionPost }) {
           {item.poster?.type === 'fundacion' && (
             <Text style={[
               styles.cardOrgBadge,
-              (item.poster as any)?.organization_profile?.verified && styles.cardOrgBadgeVerified,
+              (item.poster as any)?.verified && styles.cardOrgBadgeVerified,
             ]}>
-              {(item.poster as any)?.organization_profile?.verified ? '🏛️ Verificada' : '🏛️ Fundación'}
+              {(item.poster as any)?.verified ? '🏛️ Verificada' : '🏛️ Fundación'}
             </Text>
           )}
         </View>
