@@ -2,7 +2,7 @@ import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
   ActivityIndicator, RefreshControl,
 } from 'react-native'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
@@ -13,6 +13,10 @@ import { Colors } from '@/constants/colors'
 export default function MyPosts() {
   const { profile } = useAuthStore()
   const [refreshing, setRefreshing] = useState(false)
+
+  useEffect(() => {
+    supabase.rpc('fn_mark_missed_sessions').then(() => {})
+  }, [])
 
   const postsQuery = useQuery({
     queryKey: ['my-posts', profile?.id],

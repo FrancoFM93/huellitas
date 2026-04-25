@@ -59,12 +59,25 @@ function NotifItem({ item }: { item: AppNotification }) {
     fundraiser_update: '📢',
     vet_message: '🩺',
     new_fundraiser: '💰',
+    adoption_application: '📬',
+    adoption_decision: '🐾',
+    monitoring_ready: '🔔',
+    monitoring_verified: '✅',
+  }
+
+  const handlePress = () => {
+    markRead(item.id)
+    const m: any = item.metadata ?? {}
+    if (item.type === 'adoption_application' && m.post_id) router.push(`/adoption/${m.post_id}`)
+    else if (item.type === 'adoption_decision' && m.post_id) router.push(`/adoption/${m.post_id}`)
+    else if ((item.type === 'monitoring_ready' || item.type === 'monitoring_verified') && m.session_id)
+      router.push(`/monitoring/${m.session_id}`)
   }
 
   return (
     <TouchableOpacity
       style={[styles.notifItem, !item.read && styles.notifItemUnread]}
-      onPress={() => markRead(item.id)}
+      onPress={handlePress}
     >
       <Text style={styles.notifIcon}>{TYPE_ICONS[item.type] ?? '🔔'}</Text>
       <View style={{ flex: 1 }}>

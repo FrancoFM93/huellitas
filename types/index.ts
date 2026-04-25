@@ -216,6 +216,10 @@ export type NotificationType =
   | 'fundraiser_update'
   | 'vet_message'
   | 'new_fundraiser'
+  | 'adoption_application'
+  | 'adoption_decision'
+  | 'monitoring_ready'
+  | 'monitoring_verified'
 
 export interface AppNotification {
   id: string
