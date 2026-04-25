@@ -9,10 +9,14 @@ import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { initI18n } from '@/lib/i18n'
 import { Colors } from '@/constants/colors'
+import {
+  setNotificationHandler,
+  registerForPush,
+  addNotificationListeners,
+  routeFromNotification,
+} from '@/lib/registerPush'
 
-// NOTE: expo-notifications is not imported here because it crashes Expo Go on SDK 53+.
-// Push token registration is handled in lib/registerPush.ts and called from production
-// builds only (npx expo run:android / npx expo run:ios).
+setNotificationHandler()
 
 export default function RootLayout() {
   const { setSession, fetchProfile, reset, profile } = useAuthStore()
@@ -49,11 +53,17 @@ export default function RootLayout() {
     return () => subscription.unsubscribe()
   }, [])
 
-  // Start Realtime notification channel once profile is loaded
+  // Start Realtime notification channel + register Expo push token once profile is loaded
   useEffect(() => {
     if (!profile) return
     subscribe(profile.user_id)
+    registerForPush(profile.id)
   }, [profile?.id])
+
+  // Route to the right screen when a push is tapped (foreground or cold-start)
+  useEffect(() => {
+    return addNotificationListeners((data) => routeFromNotification(data, router.push))
+  }, [])
 
   if (!i18nReady) {
     return (
