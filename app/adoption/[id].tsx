@@ -227,7 +227,17 @@ export default function AdoptionDetail() {
         </View>
 
         {/* Posted by */}
-        <View style={styles.posterCard}>
+        <TouchableOpacity
+          style={styles.posterCard}
+          onPress={() => {
+            if (!post.poster_id) return
+            const route = posterProfile?.type === 'fundacion'
+              ? `/orgs/${post.poster_id}`
+              : `/profile/${post.poster_id}`
+            router.push(route)
+          }}
+          activeOpacity={0.85}
+        >
           <Text style={styles.posterLabel}>Publicado por</Text>
           <View style={styles.posterRow}>
             <View style={styles.posterAvatar}>
@@ -249,8 +259,9 @@ export default function AdoptionDetail() {
               </View>
               <Text style={styles.posterTime}>{timeAgo(post.created_at)}</Text>
             </View>
+            <Text style={styles.posterChevron}>›</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* Apply button */}
         {!isOwner && post.status === 'available' && profile && (
@@ -481,6 +492,7 @@ const styles = StyleSheet.create({
   },
   posterAvatarIcon: { fontSize: 20 },
   posterNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' },
+  posterChevron: { fontSize: 24, color: Colors.textDisabled },
   posterName: { fontSize: 14, fontWeight: '700', color: Colors.text },
   posterTime: { fontSize: 12, color: Colors.textMuted },
   orgBadge: {
