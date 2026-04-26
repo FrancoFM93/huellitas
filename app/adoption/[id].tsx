@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  ActivityIndicator, Alert, Linking,
+  ActivityIndicator, Alert, Linking, Image, Dimensions,
+  NativeSyntheticEvent, NativeScrollEvent,
 } from 'react-native'
+
+const { width: SCREEN_WIDTH } = Dimensions.get('window')
+const CAROUSEL_HEIGHT = 280
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -150,10 +155,16 @@ export default function AdoptionDetail() {
 
       <ScrollView contentContainerStyle={styles.inner} showsVerticalScrollIndicator={false}>
         {/* Hero */}
+        {post.photos && post.photos.length > 0 ? (
+          <PhotoCarousel photos={post.photos} />
+        ) : null}
+
         <View style={styles.hero}>
-          <View style={styles.heroIconContainer}>
-            <Text style={styles.heroIcon}>{SPECIES_ICONS[post.species]}</Text>
-          </View>
+          {(!post.photos || post.photos.length === 0) && (
+            <View style={styles.heroIconContainer}>
+              <Text style={styles.heroIcon}>{SPECIES_ICONS[post.species]}</Text>
+            </View>
+          )}
 
           <View style={[styles.statusBadge, { backgroundColor: STATUS_COLORS[post.status] + '20' }]}>
             <Text style={[styles.statusText, { color: STATUS_COLORS[post.status] }]}>
@@ -343,7 +354,52 @@ function InfoRow({ icon, label, value }: { icon: string; label: string; value: s
   )
 }
 
+function PhotoCarousel({ photos }: { photos: string[] }) {
+  const [index, setIndex] = useState(0)
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH)
+    if (i !== index) setIndex(i)
+  }
+  return (
+    <View style={styles.carousel}>
+      <ScrollView
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={32}
+      >
+        {photos.map((url) => (
+          <Image key={url} source={{ uri: url }} style={styles.carouselImg} />
+        ))}
+      </ScrollView>
+      {photos.length > 1 && (
+        <View style={styles.carouselDots}>
+          {photos.map((_, i) => (
+            <View key={i} style={[styles.carouselDot, i === index && styles.carouselDotActive]} />
+          ))}
+        </View>
+      )}
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
+  carousel: {
+    width: SCREEN_WIDTH, height: CAROUSEL_HEIGHT,
+    backgroundColor: Colors.borderLight,
+    marginHorizontal: -20, marginTop: -20, marginBottom: 8,
+  },
+  carouselImg: { width: SCREEN_WIDTH, height: CAROUSEL_HEIGHT },
+  carouselDots: {
+    position: 'absolute', bottom: 12, left: 0, right: 0,
+    flexDirection: 'row', justifyContent: 'center', gap: 6,
+  },
+  carouselDot: {
+    width: 7, height: 7, borderRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+  },
+  carouselDotActive: { backgroundColor: Colors.white, width: 18 },
   container: { flex: 1, backgroundColor: Colors.background },
   topBar: {
     flexDirection: 'row',

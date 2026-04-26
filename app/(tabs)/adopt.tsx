@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react'
 import {
   View, Text, StyleSheet, FlatList, TouchableOpacity,
-  TextInput, RefreshControl, ActivityIndicator,
+  TextInput, RefreshControl, ActivityIndicator, Image,
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -74,7 +74,11 @@ function AdoptionCard({ item }: { item: AdoptionPost }) {
       activeOpacity={0.85}
     >
       <View style={styles.cardPhoto}>
-        <Text style={styles.cardPhotoIcon}>{SPECIES_ICONS[item.species]}</Text>
+        {item.photos?.[0] ? (
+          <Image source={{ uri: item.photos[0] }} style={styles.cardPhotoImg} />
+        ) : (
+          <Text style={styles.cardPhotoIcon}>{SPECIES_ICONS[item.species]}</Text>
+        )}
         {item.is_vaccinated && (
           <View style={styles.vaccineBadge}>
             <Text style={styles.vaccineBadgeText}>💉 Vacunado</Text>
@@ -292,6 +296,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   cardPhotoIcon: { fontSize: 52 },
+  cardPhotoImg: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   vaccineBadge: {
     backgroundColor: Colors.successLight,
     borderRadius: 6,
