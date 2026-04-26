@@ -138,15 +138,21 @@ export default function AdoptionDetail() {
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>← Volver</Text>
         </TouchableOpacity>
-        {isOwner && post.status === 'available' && (
+        {isOwner && (
           <TouchableOpacity
-            onPress={() =>
-              Alert.alert('¿Qué pasó?', 'Actualiza el estado de esta publicación', [
+            onPress={() => {
+              const options: any[] = [
                 { text: 'Cancelar', style: 'cancel' },
-                { text: 'Marcar como reservado', onPress: () => markAdoptedMutation.mutate('reserved') },
-                { text: '¡Ya fue adoptado! 🎉', onPress: () => markAdoptedMutation.mutate('adopted') },
-              ])
-            }
+                { text: 'Editar publicación', onPress: () => router.push(`/adoption/edit/${post.id}`) },
+              ]
+              if (post.status === 'available') {
+                options.push(
+                  { text: 'Marcar como reservado', onPress: () => markAdoptedMutation.mutate('reserved') },
+                  { text: '¡Ya fue adoptado! 🎉', onPress: () => markAdoptedMutation.mutate('adopted') },
+                )
+              }
+              Alert.alert('Publicación', 'Elegí qué hacer', options)
+            }}
           >
             <Text style={styles.editText}>Actualizar</Text>
           </TouchableOpacity>
