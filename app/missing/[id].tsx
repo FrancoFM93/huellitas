@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, ActivityIndicator, Alert,
+  TextInput, ActivityIndicator, Alert, Image,
 } from 'react-native'
+import { usePhotoUpload } from '@/lib/usePhotoUpload'
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -30,6 +31,8 @@ export default function MissingDetail() {
   const { getLocation, locating } = useLocation()
   const [sightingAddress, setSightingAddress] = useState('')
   const [sightingNotes, setSightingNotes] = useState('')
+  const [sightingPhoto, setSightingPhoto] = useState<string | null>(null)
+  const { upload, uploading } = usePhotoUpload()
   const [sightingLat, setSightingLat] = useState(0)
   const [sightingLng, setSightingLng] = useState(0)
 
@@ -76,7 +79,7 @@ export default function MissingDetail() {
         lng: sightingLng,
         address: sightingAddress.trim(),
         notes: sightingNotes.trim(),
-        photo_url: null,
+        photo_url: sightingPhoto,
       })
       if (error) throw error
       await supabase
@@ -91,6 +94,7 @@ export default function MissingDetail() {
       setSightingNotes('')
       setSightingLat(0)
       setSightingLng(0)
+      setSightingPhoto(null)
       Alert.alert('¡Gracias!', 'Tu avistamiento fue reportado. El dueño será notificado.')
     },
     onError: (e: Error) => Alert.alert('Error', e.message),
@@ -184,6 +188,9 @@ export default function MissingDetail() {
                 </View>
                 <Text style={styles.sightingLocation}>📍 {s.address}</Text>
                 {s.notes && <Text style={styles.sightingNotes}>{s.notes}</Text>}
+                {s.photo_url && (
+                  <Image source={{ uri: s.photo_url }} style={styles.sightingPhoto} />
+                )}
               </View>
             ))}
           </View>
@@ -228,6 +235,30 @@ export default function MissingDetail() {
               multiline
               textAlignVertical="top"
             />
+            {sightingPhoto ? (
+              <View style={styles.photoPreview}>
+                <Image source={{ uri: sightingPhoto }} style={styles.photoPreviewImg} />
+                <TouchableOpacity
+                  style={styles.photoRemoveBtn}
+                  onPress={() => setSightingPhoto(null)}
+                >
+                  <Text style={styles.photoRemoveText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={[styles.photoPickBtn, uploading && { opacity: 0.6 }]}
+                onPress={async () => {
+                  const url = await upload({ folder: 'sightings', allowsEditing: false })
+                  if (url) setSightingPhoto(url)
+                }}
+                disabled={uploading}
+              >
+                {uploading
+                  ? <ActivityIndicator color={Colors.primary} />
+                  : <Text style={styles.photoPickText}>📷 Adjuntar foto (recomendado)</Text>}
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               style={[styles.reportBtn, !sightingAddress.trim() && { opacity: 0.4 }]}
               onPress={() => reportSightingMutation.mutate()}
@@ -319,4 +350,19 @@ const styles = StyleSheet.create({
   reportBtnText: { color: Colors.white, fontSize: 15, fontWeight: '700' },
   foundBanner: { backgroundColor: Colors.successLight, borderRadius: 14, padding: 16, alignItems: 'center' },
   foundBannerText: { color: Colors.success, fontSize: 15, fontWeight: '700' },
+  photoPickBtn: {
+    backgroundColor: Colors.primaryLight, borderRadius: 10,
+    paddingVertical: 12, alignItems: 'center',
+    borderWidth: 1.5, borderColor: Colors.primary, borderStyle: 'dashed',
+  },
+  photoPickText: { color: Colors.primaryDark, fontSize: 13, fontWeight: '700' },
+  photoPreview: { position: 'relative', alignSelf: 'flex-start' },
+  photoPreviewImg: { width: 140, height: 140, borderRadius: 12 },
+  photoRemoveBtn: {
+    position: 'absolute', top: -6, right: -6,
+    width: 24, height: 24, borderRadius: 12,
+    backgroundColor: Colors.alert, justifyContent: 'center', alignItems: 'center',
+  },
+  photoRemoveText: { color: Colors.white, fontSize: 16, fontWeight: '800', lineHeight: 18 },
+  sightingPhoto: { width: '100%', height: 180, borderRadius: 10, marginTop: 8 },
 })

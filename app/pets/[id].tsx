@@ -27,30 +27,6 @@ export default function PetDetail() {
     },
   })
 
-  const reportMissingMutation = useMutation({
-    mutationFn: async () => {
-      if (!pet || !profile) throw new Error('Error')
-      await supabase.from('pets').update({ is_missing: true }).eq('id', id)
-      await supabase.from('missing_pet_reports').insert({
-        pet_id: id,
-        reporter_id: profile.id,
-        last_seen_lat: profile.location?.lat ?? 0,
-        last_seen_lng: profile.location?.lng ?? 0,
-        last_seen_address: profile.location?.address ?? 'Sin ubicación',
-        last_seen_at: new Date().toISOString(),
-        description: `${pet.name} está perdido/a. ${pet.color}. ${pet.breed ?? ''}`,
-        status: 'active',
-        sightings_count: 0,
-      })
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['pet', id] })
-      qc.invalidateQueries({ queryKey: ['feed'] })
-      Alert.alert('Reporte publicado', `Se notificará a la comunidad para ayudar a encontrar a ${pet?.name}.`)
-    },
-    onError: (e: Error) => Alert.alert('Error', e.message),
-  })
-
   const foundMutation = useMutation({
     mutationFn: async () => {
       await supabase.from('pets').update({ is_missing: false }).eq('id', id)
@@ -129,14 +105,7 @@ export default function PetDetail() {
             {!pet.is_missing ? (
               <TouchableOpacity
                 style={styles.btnWarning}
-                onPress={() => Alert.alert(
-                  '¿Reportar como perdido?',
-                  `Se publicará un aviso en la comunidad para encontrar a ${pet.name}`,
-                  [
-                    { text: 'Cancelar', style: 'cancel' },
-                    { text: 'Reportar', style: 'destructive', onPress: () => reportMissingMutation.mutate() },
-                  ]
-                )}
+                onPress={() => router.push(`/missing/new/${id}`)}
               >
                 <Text style={styles.btnWarningText}>🔍 Reportar como perdido</Text>
               </TouchableOpacity>
