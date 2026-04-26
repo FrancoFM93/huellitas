@@ -1,14 +1,17 @@
 import { useState } from 'react'
 import {
   View, Text, StyleSheet, TextInput, TouchableOpacity,
-  ScrollView, ActivityIndicator, Alert, Switch,
+  ScrollView, ActivityIndicator, Alert, Switch, Image,
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
+import { usePhotoUpload } from '@/lib/usePhotoUpload'
 import { Colors } from '@/constants/colors'
 import type { PetSpecies } from '@/types'
+
+const MAX_PHOTOS = 5
 
 const SPECIES: { value: PetSpecies; label: string; icon: string }[] = [
   { value: 'dog', label: 'Perro', icon: '🐶' },
@@ -55,7 +58,20 @@ export default function NewAdoption() {
   const [isDewormed, setIsDewormed] = useState(false)
   const [goodWithKids, setGoodWithKids] = useState(false)
   const [goodWithPets, setGoodWithPets] = useState(false)
+  const [photos, setPhotos] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
+  const { upload, uploading } = usePhotoUpload()
+
+  const addPhoto = async () => {
+    if (photos.length >= MAX_PHOTOS) {
+      Alert.alert('Máximo alcanzado', `Hasta ${MAX_PHOTOS} fotos por publicación`)
+      return
+    }
+    const url = await upload({ folder: 'adoption', allowsEditing: false })
+    if (url) setPhotos((prev) => [...prev, url])
+  }
+
+  const removePhoto = (url: string) => setPhotos((prev) => prev.filter((p) => p !== url))
 
   const handleSubmit = async () => {
     if (!name.trim() || !description.trim() || !location.trim() || !contactInfo.trim()) {
@@ -77,7 +93,7 @@ export default function NewAdoption() {
       description: description.trim(),
       location: location.trim(),
       contact_info: contactInfo.trim(),
-      photos: [],
+      photos,
       is_vaccinated: isVaccinated,
       is_neutered: isNeutered,
       is_dewormed: isDewormed,
@@ -136,6 +152,36 @@ export default function NewAdoption() {
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        {/* Photos */}
+        <View style={styles.field}>
+          <Text style={styles.label}>Fotos</Text>
+          <Text style={styles.hint}>Agregá hasta {MAX_PHOTOS} fotos. Las publicaciones con fotos reciben más solicitudes.</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosRow}>
+            {photos.map((url) => (
+              <View key={url} style={styles.photoThumb}>
+                <Image source={{ uri: url }} style={styles.photoImg} />
+                <TouchableOpacity style={styles.photoRemove} onPress={() => removePhoto(url)}>
+                  <Text style={styles.photoRemoveText}>×</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+            {photos.length < MAX_PHOTOS && (
+              <TouchableOpacity
+                style={[styles.photoAdd, uploading && styles.photoAddDisabled]}
+                onPress={addPhoto}
+                disabled={uploading}
+              >
+                {uploading
+                  ? <ActivityIndicator color={Colors.primary} />
+                  : <>
+                      <Text style={styles.photoAddIcon}>＋</Text>
+                      <Text style={styles.photoAddText}>Foto</Text>
+                    </>}
+              </TouchableOpacity>
+            )}
+          </ScrollView>
         </View>
 
         {/* Name */}
@@ -429,4 +475,25 @@ const styles = StyleSheet.create({
   divider: { height: 1, backgroundColor: Colors.borderLight, marginHorizontal: 16 },
   notice: { backgroundColor: Colors.primaryLight, borderRadius: 12, padding: 14 },
   noticeText: { fontSize: 13, color: Colors.primaryDark, lineHeight: 20 },
+  hint: { fontSize: 12, color: Colors.textMuted, lineHeight: 17 },
+  photosRow: { flexDirection: 'row', marginTop: 6 },
+  photoThumb: {
+    width: 90, height: 90, borderRadius: 12, marginRight: 8,
+    backgroundColor: Colors.borderLight, position: 'relative',
+  },
+  photoImg: { width: '100%', height: '100%', borderRadius: 12 },
+  photoRemove: {
+    position: 'absolute', top: -6, right: -6,
+    width: 22, height: 22, borderRadius: 11,
+    backgroundColor: Colors.alert, justifyContent: 'center', alignItems: 'center',
+  },
+  photoRemoveText: { color: Colors.white, fontSize: 14, fontWeight: '800', lineHeight: 16 },
+  photoAdd: {
+    width: 90, height: 90, borderRadius: 12,
+    borderWidth: 2, borderColor: Colors.primary, borderStyle: 'dashed',
+    justifyContent: 'center', alignItems: 'center', gap: 2,
+  },
+  photoAddDisabled: { opacity: 0.6 },
+  photoAddIcon: { fontSize: 28, color: Colors.primary, fontWeight: '300' },
+  photoAddText: { fontSize: 11, color: Colors.primary, fontWeight: '600' },
 })

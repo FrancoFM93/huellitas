@@ -29,7 +29,7 @@ async function fetchMapData() {
   ])
   return {
     alerts: (alertsRes.data ?? []) as CommunityAlert[],
-    missing: (missingRes.data ?? []) as MissingPetReport[],
+    missing: (missingRes.data ?? []) as unknown as MissingPetReport[],
   }
 }
 
