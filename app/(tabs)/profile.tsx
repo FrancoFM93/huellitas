@@ -72,6 +72,7 @@ function NotifItem({ item }: { item: AppNotification }) {
     else if (item.type === 'adoption_decision' && m.post_id) router.push(`/adoption/${m.post_id}`)
     else if ((item.type === 'monitoring_ready' || item.type === 'monitoring_verified') && m.session_id)
       router.push(`/monitoring/${m.session_id}`)
+    else if (item.type === 'vet_message' && m.thread_id) router.push(`/messages/${m.thread_id}`)
   }
 
   return (
@@ -277,6 +278,14 @@ export default function Profile() {
           >
             <Text style={styles.actionIcon}>✏️</Text>
             <Text style={styles.actionText}>{t('profile.edit_profile')}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => router.push('/messages')}
+          >
+            <Text style={styles.actionIcon}>💬</Text>
+            <Text style={styles.actionText}>Mensajes</Text>
           </TouchableOpacity>
 
           <TouchableOpacity

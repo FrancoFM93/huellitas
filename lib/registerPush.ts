@@ -64,6 +64,7 @@ export function routeFromNotification(
 ) {
   if (data.session_id) navigate(`/monitoring/${data.session_id}`)
   else if (data.contract_id) navigate(`/adoption/contract/${data.contract_id}`)
+  else if (data.thread_id) navigate(`/messages/${data.thread_id}`)
   else if (data.post_id) navigate(`/adoption/${data.post_id}`)
   else if (data.alert_id) navigate(`/alerts/${data.alert_id}`)
   else if (data.fundraiser_id) navigate(`/fundraising/${data.fundraiser_id}`)

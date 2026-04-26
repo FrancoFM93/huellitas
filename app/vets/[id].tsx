@@ -6,6 +6,7 @@ import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 import type { VetWithProfile } from '@/types'
 
@@ -23,6 +24,7 @@ const DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'satu
 
 export default function VetDetail() {
   const { id } = useLocalSearchParams<{ id: string }>()
+  const { profile: me } = useAuthStore()
 
   const { data: vet, isLoading } = useQuery({
     queryKey: ['vet', id],
@@ -63,6 +65,40 @@ export default function VetDetail() {
 
   const openWebsite = () => {
     if (vet.website) Linking.openURL(vet.website)
+  }
+
+  const startMessage = async () => {
+    if (!me || !me.id) {
+      Alert.alert('Inicio de sesión', 'Necesitás una cuenta para enviar mensajes.')
+      return
+    }
+    const vetProfileId = (vet.profile as any)?.id
+    if (!vetProfileId) return
+    if (vetProfileId === me.id) {
+      Alert.alert('No disponible', 'No podés iniciar una conversación con vos mismo.')
+      return
+    }
+    const { data: existing } = await supabase
+      .from('vet_threads')
+      .select('id')
+      .eq('owner_id', me.id)
+      .eq('vet_id', vetProfileId)
+      .is('pet_id', null)
+      .maybeSingle()
+    let threadId = existing?.id
+    if (!threadId) {
+      const { data: created, error } = await supabase
+        .from('vet_threads')
+        .insert({ owner_id: me.id, vet_id: vetProfileId, pet_id: null })
+        .select('id')
+        .single()
+      if (error || !created) {
+        Alert.alert('Error', error?.message ?? 'No se pudo iniciar la conversación')
+        return
+      }
+      threadId = created.id
+    }
+    router.push(`/messages/${threadId}`)
   }
 
   const hasPhone = !!(vet.phone ?? profile?.phone)
@@ -152,6 +188,10 @@ export default function VetDetail() {
         )}
 
         {/* Contact */}
+        <TouchableOpacity style={styles.messageBtn} onPress={startMessage}>
+          <Text style={styles.messageBtnText}>💬 Enviar mensaje</Text>
+        </TouchableOpacity>
+
         {hasContact && (
           <View style={styles.contactSection}>
             <Text style={styles.contactTitle}>Contacto</Text>
@@ -275,4 +315,9 @@ const styles = StyleSheet.create({
   emailBtn: { backgroundColor: Colors.info },
   webBtn: { backgroundColor: Colors.textSecondary },
   contactBtnText: { color: Colors.white, fontSize: 14, fontWeight: '700' },
+  messageBtn: {
+    backgroundColor: Colors.primary, borderRadius: 14,
+    paddingVertical: 14, alignItems: 'center',
+  },
+  messageBtnText: { color: Colors.white, fontSize: 15, fontWeight: '700' },
 })
