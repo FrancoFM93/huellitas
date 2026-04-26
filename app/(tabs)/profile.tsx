@@ -279,6 +279,14 @@ export default function Profile() {
             <Text style={styles.actionText}>{t('profile.edit_profile')}</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.actionBtn}
+            onPress={() => router.push('/profile/settings')}
+          >
+            <Text style={styles.actionIcon}>⚙️</Text>
+            <Text style={styles.actionText}>Ajustes</Text>
+          </TouchableOpacity>
+
           {/* Language picker */}
           <View style={styles.actionBtn}>
             <Text style={styles.actionIcon}>🌐</Text>
