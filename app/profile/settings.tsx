@@ -17,30 +17,30 @@ export default function Settings() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Ajustes</Text>
+        <Text style={styles.topBarTitle}>{t('profile.settings_title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.inner}>
-        <Text style={styles.sectionTitle}>Cuenta</Text>
+        <Text style={styles.sectionTitle}>{t('profile.settings_account')}</Text>
         <Row
           icon="✏️"
-          label="Editar perfil"
+          label={t('profile.edit_profile')}
           onPress={() => router.push('/profile/edit')}
         />
         <Row
           icon="🚪"
-          label="Cerrar sesión"
+          label={t('profile.settings_logout')}
           onPress={signOut}
         />
 
-        <Text style={styles.sectionTitle}>Idioma</Text>
+        <Text style={styles.sectionTitle}>{t('profile.language')}</Text>
         <View style={styles.langCard}>
           {[
-            { code: 'es', label: 'Español' },
-            { code: 'en', label: 'English' },
+            { code: 'es', label: t('profile.language_es') },
+            { code: 'en', label: t('profile.language_en') },
           ].map((l) => (
             <TouchableOpacity
               key={l.code}
@@ -54,27 +54,27 @@ export default function Settings() {
           ))}
         </View>
 
-        <Text style={styles.sectionTitle}>Información</Text>
+        <Text style={styles.sectionTitle}>{t('profile.settings_info')}</Text>
         <Row
           icon="📄"
-          label="Términos y condiciones"
+          label={t('profile.settings_terms')}
           onPress={() => Linking.openURL('https://huellitas.app/terms')}
         />
         <Row
           icon="🔒"
-          label="Política de privacidad"
+          label={t('profile.settings_privacy')}
           onPress={() => Linking.openURL('https://huellitas.app/privacy')}
         />
 
-        <Text style={[styles.sectionTitle, { color: Colors.alert }]}>Zona peligrosa</Text>
+        <Text style={[styles.sectionTitle, { color: Colors.alert }]}>{t('profile.settings_danger')}</Text>
         <TouchableOpacity
           style={styles.dangerRow}
           onPress={() => router.push('/profile/delete-account')}
         >
           <Text style={styles.dangerIcon}>🗑️</Text>
           <View style={{ flex: 1 }}>
-            <Text style={styles.dangerLabel}>Eliminar mi cuenta</Text>
-            <Text style={styles.dangerHint}>Tu perfil será anonimizado y no podrás iniciar sesión.</Text>
+            <Text style={styles.dangerLabel}>{t('profile.settings_delete_account')}</Text>
+            <Text style={styles.dangerHint}>{t('profile.settings_delete_hint')}</Text>
           </View>
           <Text style={styles.chevron}>›</Text>
         </TouchableOpacity>

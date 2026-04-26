@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
@@ -20,6 +21,7 @@ type Message = {
 }
 
 export default function VetThread() {
+  const { t } = useTranslation()
   const { threadId } = useLocalSearchParams<{ threadId: string }>()
   const { profile } = useAuthStore()
   const qc = useQueryClient()
@@ -108,18 +110,18 @@ export default function VetThread() {
     return <View style={styles.loader}><ActivityIndicator color={Colors.primary} /></View>
   }
 
-  const t = threadQuery.data
-  const counterparty = t.owner_id === profile?.id ? t.vet : t.owner
+  const thread = threadQuery.data
+  const counterparty = thread.owner_id === profile?.id ? thread.vet : thread.owner
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
         <View style={{ flex: 1, alignItems: 'center' }}>
-          <Text style={styles.topBarTitle} numberOfLines={1}>{counterparty?.name ?? 'Conversación'}</Text>
-          {t.pet && <Text style={styles.topBarSub} numberOfLines={1}>🐾 {t.pet.name}</Text>}
+          <Text style={styles.topBarTitle} numberOfLines={1}>{counterparty?.name ?? t('messages.thread_title')}</Text>
+          {thread.pet && <Text style={styles.topBarSub} numberOfLines={1}>🐾 {thread.pet.name}</Text>}
         </View>
         <View style={{ width: 60 }} />
       </View>
@@ -155,7 +157,7 @@ export default function VetThread() {
             style={styles.input}
             value={draft}
             onChangeText={setDraft}
-            placeholder="Escribí un mensaje..."
+            placeholder={t('messages.input_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             multiline
           />
@@ -166,7 +168,7 @@ export default function VetThread() {
           >
             {sending
               ? <ActivityIndicator color={Colors.white} size="small" />
-              : <Text style={styles.sendBtnText}>Enviar</Text>}
+              : <Text style={styles.sendBtnText}>{t('messages.send')}</Text>}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>

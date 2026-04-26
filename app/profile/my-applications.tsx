@@ -6,6 +6,7 @@ import { useState, useCallback } from 'react'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
@@ -18,6 +19,7 @@ const STATUS_LABELS: Record<string, { text: string; color: string }> = {
 }
 
 export default function MyApplications() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
   const [refreshing, setRefreshing] = useState(false)
 
@@ -61,9 +63,9 @@ export default function MyApplications() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Mis solicitudes</Text>
+        <Text style={styles.topBarTitle}>{t('profile.my_applications')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -74,9 +76,9 @@ export default function MyApplications() {
           contentContainerStyle={styles.inner}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.primary} />}
         >
-          <Text style={styles.sectionTitle}>Solicitudes</Text>
+          <Text style={styles.sectionTitle}>{t('profile.my_applications_section')}</Text>
           {apps.length === 0 ? (
-            <Text style={styles.empty}>Aún no enviaste solicitudes</Text>
+            <Text style={styles.empty}>{t('profile.my_applications_empty')}</Text>
           ) : apps.map((a: any) => (
             <TouchableOpacity
               key={a.id}
@@ -94,9 +96,9 @@ export default function MyApplications() {
             </TouchableOpacity>
           ))}
 
-          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Contratos activos</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('profile.my_contracts_section')}</Text>
           {contracts.length === 0 ? (
-            <Text style={styles.empty}>Todavía no tenés contratos</Text>
+            <Text style={styles.empty}>{t('profile.my_contracts_empty')}</Text>
           ) : contracts.map((c: any) => (
             <TouchableOpacity
               key={c.id}

@@ -6,6 +6,7 @@ import {
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
@@ -24,6 +25,7 @@ type ThreadRow = {
 }
 
 export default function MessagesInbox() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
   const [refreshing, setRefreshing] = useState(false)
 
@@ -76,9 +78,9 @@ export default function MessagesInbox() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Mensajes</Text>
+        <Text style={styles.topBarTitle}>{t('messages.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -87,10 +89,8 @@ export default function MessagesInbox() {
       ) : threads.length === 0 ? (
         <View style={styles.empty}>
           <Text style={styles.emptyIcon}>💬</Text>
-          <Text style={styles.emptyTitle}>Sin conversaciones</Text>
-          <Text style={styles.emptyHint}>
-            Iniciá una consulta tocando "Mensaje" en el perfil de un veterinario.
-          </Text>
+          <Text style={styles.emptyTitle}>{t('messages.empty_title')}</Text>
+          <Text style={styles.emptyHint}>{t('messages.empty_hint')}</Text>
         </View>
       ) : (
         <FlatList
@@ -113,12 +113,12 @@ export default function MessagesInbox() {
                   </Text>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.rowName}>{counterparty?.name ?? 'Conversación'}</Text>
+                  <Text style={styles.rowName}>{counterparty?.name ?? t('messages.thread_title')}</Text>
                   {item.pet && (
                     <Text style={styles.rowPet}>🐾 {item.pet.name}</Text>
                   )}
                   <Text style={styles.rowPreview} numberOfLines={2}>
-                    {item.last_message_preview ?? 'Sin mensajes'}
+                    {item.last_message_preview ?? t('messages.no_messages')}
                   </Text>
                 </View>
                 <View style={{ alignItems: 'flex-end', gap: 6 }}>

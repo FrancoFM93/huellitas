@@ -258,7 +258,7 @@ export default function Profile() {
               onPress={() => router.push('/profile/my-applications')}
             >
               <Text style={styles.actionIcon}>📋</Text>
-              <Text style={styles.actionText}>Mis solicitudes</Text>
+              <Text style={styles.actionText}>{t('profile.my_applications')}</Text>
             </TouchableOpacity>
           )}
 
@@ -268,7 +268,7 @@ export default function Profile() {
               onPress={() => router.push('/profile/my-posts')}
             >
               <Text style={styles.actionIcon}>🏠</Text>
-              <Text style={styles.actionText}>Mis publicaciones</Text>
+              <Text style={styles.actionText}>{t('profile.my_posts')}</Text>
             </TouchableOpacity>
           )}
 
@@ -285,7 +285,7 @@ export default function Profile() {
             onPress={() => router.push('/messages')}
           >
             <Text style={styles.actionIcon}>💬</Text>
-            <Text style={styles.actionText}>Mensajes</Text>
+            <Text style={styles.actionText}>{t('profile.messages')}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -293,7 +293,7 @@ export default function Profile() {
             onPress={() => router.push('/profile/settings')}
           >
             <Text style={styles.actionIcon}>⚙️</Text>
-            <Text style={styles.actionText}>Ajustes</Text>
+            <Text style={styles.actionText}>{t('profile.ajustes')}</Text>
           </TouchableOpacity>
 
           {/* Language picker */}

@@ -5,25 +5,26 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 
-const CONFIRM_PHRASE = 'ELIMINAR'
-
 export default function DeleteAccount() {
+  const { t } = useTranslation()
   const { signOut } = useAuthStore()
   const [confirmText, setConfirmText] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const canDelete = confirmText.trim().toUpperCase() === CONFIRM_PHRASE && !loading
+  const phrase = t('profile.delete_confirm_phrase')
+  const canDelete = confirmText.trim().toUpperCase() === phrase && !loading
 
   const handleDelete = async () => {
     setLoading(true)
     const { error } = await supabase.rpc('fn_request_account_deletion')
     if (error) {
       setLoading(false)
-      Alert.alert('Error', error.message)
+      Alert.alert(t('common.error'), error.message)
       return
     }
     await signOut()
@@ -34,38 +35,36 @@ export default function DeleteAccount() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()} disabled={loading}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Eliminar cuenta</Text>
+        <Text style={styles.topBarTitle}>{t('profile.delete_title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.inner}>
         <View style={styles.banner}>
           <Text style={styles.bannerIcon}>⚠️</Text>
-          <Text style={styles.bannerText}>
-            Esta acción no se puede deshacer.
-          </Text>
+          <Text style={styles.bannerText}>{t('profile.delete_warning')}</Text>
         </View>
 
-        <Text style={styles.title}>¿Qué pasa cuando eliminás tu cuenta?</Text>
+        <Text style={styles.title}>{t('profile.delete_explain')}</Text>
 
         <View style={styles.list}>
-          <Bullet text="Tu nombre, foto, biografía, teléfono y ubicación se eliminan inmediatamente." />
-          <Bullet text="No vas a poder volver a iniciar sesión con esta cuenta." />
-          <Bullet text="Las publicaciones, alertas y reportes que creaste seguirán visibles, pero firmados como 'Cuenta eliminada'." />
-          <Bullet text="Las adopciones que cerraste y sus contratos de seguimiento se mantienen, para que la otra persona involucrada no los pierda." />
-          <Bullet text="No vas a recibir más notificaciones." />
+          <Bullet text={t('profile.delete_b1')} />
+          <Bullet text={t('profile.delete_b2')} />
+          <Bullet text={t('profile.delete_b3')} />
+          <Bullet text={t('profile.delete_b4')} />
+          <Bullet text={t('profile.delete_b5')} />
         </View>
 
         <Text style={styles.label}>
-          Para confirmar, escribí <Text style={styles.bold}>{CONFIRM_PHRASE}</Text>:
+          {t('profile.delete_confirm_label')} <Text style={styles.bold}>{phrase}</Text>:
         </Text>
         <TextInput
           style={styles.input}
           value={confirmText}
           onChangeText={setConfirmText}
-          placeholder={CONFIRM_PHRASE}
+          placeholder={phrase}
           placeholderTextColor={Colors.textDisabled}
           autoCapitalize="characters"
           autoCorrect={false}
@@ -76,11 +75,11 @@ export default function DeleteAccount() {
           style={[styles.deleteBtn, !canDelete && styles.deleteBtnDisabled]}
           onPress={() =>
             Alert.alert(
-              '¿Eliminar cuenta?',
-              'Esta acción es permanente.',
+              t('profile.delete_alert_title'),
+              t('profile.delete_alert_body'),
               [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Eliminar', style: 'destructive', onPress: handleDelete },
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('common.delete'), style: 'destructive', onPress: handleDelete },
               ]
             )
           }
@@ -88,11 +87,11 @@ export default function DeleteAccount() {
         >
           {loading
             ? <ActivityIndicator color={Colors.white} />
-            : <Text style={styles.deleteBtnText}>Eliminar mi cuenta</Text>}
+            : <Text style={styles.deleteBtnText}>{t('profile.delete_button')}</Text>}
         </TouchableOpacity>
 
         <TouchableOpacity onPress={() => router.back()} disabled={loading}>
-          <Text style={styles.cancelLink}>Cancelar y volver</Text>
+          <Text style={styles.cancelLink}>{t('profile.delete_cancel')}</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

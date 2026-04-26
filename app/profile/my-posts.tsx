@@ -6,11 +6,13 @@ import { useState, useCallback, useEffect } from 'react'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 
 export default function MyPosts() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
   const [refreshing, setRefreshing] = useState(false)
 
@@ -100,9 +102,9 @@ export default function MyPosts() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Mis publicaciones</Text>
+        <Text style={styles.topBarTitle}>{t('profile.my_posts')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -115,13 +117,13 @@ export default function MyPosts() {
         >
           {totalPending > 0 && (
             <View style={styles.banner}>
-              <Text style={styles.bannerText}>📬 Tenés {totalPending} solicitud{totalPending !== 1 ? 'es' : ''} pendiente{totalPending !== 1 ? 's' : ''} por revisar.</Text>
+              <Text style={styles.bannerText}>📬 {t('profile.my_posts_pending_banner', { count: totalPending })}</Text>
             </View>
           )}
 
-          <Text style={styles.sectionTitle}>Próximas sesiones (30 días)</Text>
+          <Text style={styles.sectionTitle}>{t('profile.my_posts_upcoming')}</Text>
           {upcoming.length === 0 ? (
-            <Text style={styles.empty}>Sin sesiones próximas</Text>
+            <Text style={styles.empty}>{t('profile.my_posts_upcoming_empty')}</Text>
           ) : upcoming.map((s: any) => {
             const ready = (s.photo_urls?.length > 0) || !!s.jitsi_room
             return (
@@ -134,16 +136,16 @@ export default function MyPosts() {
                 <View style={{ flex: 1 }}>
                   <Text style={styles.rowTitle}>{s.postName}</Text>
                   <Text style={styles.rowMeta}>{new Date(s.scheduled_at).toLocaleDateString()}</Text>
-                  {ready && <Text style={styles.rowAction}>🔔 Lista para verificar</Text>}
+                  {ready && <Text style={styles.rowAction}>{t('profile.my_posts_ready_to_verify')}</Text>}
                 </View>
                 <Text style={styles.chevron}>›</Text>
               </TouchableOpacity>
             )
           })}
 
-          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Publicaciones</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('profile.my_posts_section')}</Text>
           {posts.length === 0 ? (
-            <Text style={styles.empty}>Aún no publicaste mascotas en adopción</Text>
+            <Text style={styles.empty}>{t('profile.my_posts_empty')}</Text>
           ) : posts.map((p: any) => (
             <TouchableOpacity
               key={p.id}
@@ -164,9 +166,9 @@ export default function MyPosts() {
             </TouchableOpacity>
           ))}
 
-          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>Contratos</Text>
+          <Text style={[styles.sectionTitle, { marginTop: 24 }]}>{t('profile.my_posts_contracts')}</Text>
           {contracts.length === 0 ? (
-            <Text style={styles.empty}>Sin contratos firmados</Text>
+            <Text style={styles.empty}>{t('profile.my_posts_contracts_empty')}</Text>
           ) : contracts.map((c: any) => (
             <TouchableOpacity
               key={c.id}
