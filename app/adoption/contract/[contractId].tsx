@@ -4,24 +4,25 @@ import {
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 
-const SESSION_TYPE_LABEL: Record<string, { icon: string; label: string }> = {
-  photo: { icon: '📷', label: 'Foto' },
-  video: { icon: '🎥', label: 'Videollamada' },
-}
-
-const SESSION_STATUS_LABEL: Record<string, { text: string; color: string }> = {
-  scheduled: { text: '⏳ Programada', color: Colors.warning },
-  completed: { text: '✅ Completada', color: Colors.success },
-  missed:    { text: '❌ No realizada', color: Colors.alert },
-}
-
 export default function ContractScreen() {
+  const { t } = useTranslation()
   const { contractId } = useLocalSearchParams<{ contractId: string }>()
   const { profile } = useAuthStore()
+
+  const SESSION_TYPE_LABEL: Record<string, { icon: string; label: string }> = {
+    photo: { icon: '📷', label: t('contract.session_photo') },
+    video: { icon: '🎥', label: t('contract.session_video') },
+  }
+  const SESSION_STATUS_LABEL: Record<string, { text: string; color: string }> = {
+    scheduled: { text: t('contract.session_scheduled'), color: Colors.warning },
+    completed: { text: t('contract.session_completed'), color: Colors.success },
+    missed:    { text: t('contract.session_missed'), color: Colors.alert },
+  }
 
   const { data: contract, isLoading } = useQuery({
     queryKey: ['contract', contractId],
@@ -61,32 +62,32 @@ export default function ContractScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Contrato</Text>
+        <Text style={styles.topBarTitle}>{t('contract.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.inner}>
         <View style={styles.hero}>
           <Text style={styles.heroIcon}>🏠</Text>
-          <Text style={styles.heroName}>{contract.post?.name ?? 'Mascota'}</Text>
+          <Text style={styles.heroName}>{contract.post?.name ?? t('contract.pet_fallback')}</Text>
           <View style={[styles.statusPill, contract.status === 'active' && { backgroundColor: Colors.successLight }]}>
             <Text style={[styles.statusPillText, { color: contract.status === 'active' ? Colors.success : Colors.textMuted }]}>
-              {contract.status === 'active' ? '✅ Contrato activo' : contract.status === 'completed' ? '🏁 Finalizado' : '🚫 Cancelado'}
+              {contract.status === 'active' ? t('contract.active') : contract.status === 'completed' ? t('contract.completed') : t('contract.cancelled')}
             </Text>
           </View>
         </View>
 
         <View style={styles.card}>
-          <Row label="Firmado" value={new Date(contract.signed_at).toLocaleDateString()} />
-          <Row label="Seguimiento hasta" value={new Date(contract.monitoring_until).toLocaleDateString()} />
-          <Row label="Adoptante" value={contract.adopter?.name ?? '—'} />
-          <Row label={contract.poster?.type === 'fundacion' ? 'Fundación' : 'Publicó'}
+          <Row label={t('contract.signed_at')} value={new Date(contract.signed_at).toLocaleDateString()} />
+          <Row label={t('contract.monitoring_until')} value={new Date(contract.monitoring_until).toLocaleDateString()} />
+          <Row label={t('contract.adopter')} value={contract.adopter?.name ?? '—'} />
+          <Row label={contract.poster?.type === 'fundacion' ? t('contract.poster_fundacion') : t('contract.poster_default')}
                value={contract.poster?.name ?? '—'} />
         </View>
 
-        <Text style={styles.sectionTitle}>Sesiones de seguimiento</Text>
+        <Text style={styles.sectionTitle}>{t('contract.sessions_title')}</Text>
         <View style={styles.sessionsCol}>
           {(sessions ?? []).map((s: any) => {
             const type = SESSION_TYPE_LABEL[s.type]
@@ -115,10 +116,7 @@ export default function ContractScreen() {
         </View>
 
         <View style={styles.notice}>
-          <Text style={styles.noticeText}>
-            🐾 El seguimiento busca asegurar el bienestar del animal. Cumplí con las sesiones
-            en las fechas pactadas.
-          </Text>
+          <Text style={styles.noticeText}>{t('contract.notice')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

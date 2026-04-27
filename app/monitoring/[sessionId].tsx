@@ -6,28 +6,29 @@ import {
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { usePhotoUpload } from '@/lib/usePhotoUpload'
 import { Colors } from '@/constants/colors'
 
-const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
-  photo: { icon: '📷', label: 'Sesión de fotos' },
-  video: { icon: '🎥', label: 'Videollamada' },
-}
-
-const STATUS_LABEL: Record<string, { text: string; color: string }> = {
-  scheduled: { text: '⏳ Programada', color: Colors.warning },
-  completed: { text: '✅ Completada', color: Colors.success },
-  missed:    { text: '❌ No realizada', color: Colors.alert },
-}
-
 export default function MonitoringSession() {
+  const { t } = useTranslation()
   const { sessionId } = useLocalSearchParams<{ sessionId: string }>()
   const { profile } = useAuthStore()
   const qc = useQueryClient()
   const { upload, uploading } = usePhotoUpload()
   const [note, setNote] = useState('')
+
+  const TYPE_LABEL: Record<string, { icon: string; label: string }> = {
+    photo: { icon: '📷', label: t('monitoring.type_photo') },
+    video: { icon: '🎥', label: t('monitoring.type_video') },
+  }
+  const STATUS_LABEL: Record<string, { text: string; color: string }> = {
+    scheduled: { text: t('contract.session_scheduled'), color: Colors.warning },
+    completed: { text: t('contract.session_completed'), color: Colors.success },
+    missed:    { text: t('contract.session_missed'), color: Colors.alert },
+  }
 
   const { data: session, isLoading } = useQuery({
     queryKey: ['session', sessionId],
@@ -54,7 +55,7 @@ export default function MonitoringSession() {
       return url
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['session', sessionId] }),
-    onError: (e: Error) => Alert.alert('Error', e.message),
+    onError: (e: Error) => Alert.alert(t('common.error'), e.message),
   })
 
   const setJitsiRoom = useMutation({
@@ -68,7 +69,7 @@ export default function MonitoringSession() {
       return room
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['session', sessionId] }),
-    onError: (e: Error) => Alert.alert('Error', e.message),
+    onError: (e: Error) => Alert.alert(t('common.error'), e.message),
   })
 
   const verify = useMutation({
@@ -82,9 +83,9 @@ export default function MonitoringSession() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['session', sessionId] })
       qc.invalidateQueries({ queryKey: ['sessions'] })
-      Alert.alert('Verificada', 'Sesión marcada como completada.')
+      Alert.alert(t('monitoring.verified_title'), t('monitoring.verified_msg'))
     },
-    onError: (e: Error) => Alert.alert('Error', e.message),
+    onError: (e: Error) => Alert.alert(t('common.error'), e.message),
   })
 
   if (isLoading || !session) {
@@ -113,9 +114,9 @@ export default function MonitoringSession() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Sesión</Text>
+        <Text style={styles.topBarTitle}>{t('monitoring.title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -123,7 +124,7 @@ export default function MonitoringSession() {
         <View style={styles.hero}>
           <Text style={styles.heroIcon}>{type?.icon ?? '📋'}</Text>
           <Text style={styles.heroTitle}>{type?.label ?? session.type}</Text>
-          <Text style={styles.heroPet}>{contract?.post?.name ?? 'Mascota'}</Text>
+          <Text style={styles.heroPet}>{contract?.post?.name ?? t('contract.pet_fallback')}</Text>
           <View style={styles.statusPill}>
             <Text style={[styles.statusPillText, { color: status?.color ?? Colors.textMuted }]}>
               {status?.text ?? session.status}
@@ -132,13 +133,13 @@ export default function MonitoringSession() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Fecha programada</Text>
+          <Text style={styles.cardTitle}>{t('monitoring.scheduled_date')}</Text>
           <Text style={styles.cardValue}>{scheduled.toLocaleDateString()}</Text>
         </View>
 
         {session.type === 'photo' && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Fotos ({photos.length})</Text>
+            <Text style={styles.cardTitle}>{t('monitoring.photos_count', { count: photos.length })}</Text>
             {photos.length > 0 ? (
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 8 }}>
                 {photos.map((url) => (
@@ -146,7 +147,7 @@ export default function MonitoringSession() {
                 ))}
               </ScrollView>
             ) : (
-              <Text style={styles.empty}>Aún no hay fotos cargadas</Text>
+              <Text style={styles.empty}>{t('monitoring.no_photos')}</Text>
             )}
             {isAdopter && isScheduled && (
               <TouchableOpacity
@@ -156,7 +157,7 @@ export default function MonitoringSession() {
               >
                 {uploading
                   ? <ActivityIndicator color={Colors.white} />
-                  : <Text style={styles.btnText}>📷 Subir foto</Text>}
+                  : <Text style={styles.btnText}>{t('monitoring.upload_photo')}</Text>}
               </TouchableOpacity>
             )}
           </View>
@@ -164,12 +165,12 @@ export default function MonitoringSession() {
 
         {session.type === 'video' && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Videollamada</Text>
+            <Text style={styles.cardTitle}>{t('monitoring.video_call')}</Text>
             {session.jitsi_room ? (
               <>
-                <Text style={styles.cardValue}>Sala: {session.jitsi_room}</Text>
+                <Text style={styles.cardValue}>{t('monitoring.room_label', { room: session.jitsi_room })}</Text>
                 <TouchableOpacity style={styles.btn} onPress={openJitsi}>
-                  <Text style={styles.btnText}>🎥 Unirse a la sala</Text>
+                  <Text style={styles.btnText}>{t('monitoring.join_room')}</Text>
                 </TouchableOpacity>
               </>
             ) : isAdopter && isScheduled ? (
@@ -177,37 +178,35 @@ export default function MonitoringSession() {
                 style={styles.btn}
                 onPress={() => setJitsiRoom.mutate()}
               >
-                <Text style={styles.btnText}>Crear sala de videollamada</Text>
+                <Text style={styles.btnText}>{t('monitoring.create_room')}</Text>
               </TouchableOpacity>
             ) : (
-              <Text style={styles.empty}>El adoptante aún no creó la sala</Text>
+              <Text style={styles.empty}>{t('monitoring.no_room_yet')}</Text>
             )}
           </View>
         )}
 
         {isPoster && isScheduled && hasContent && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Verificación</Text>
-            <Text style={styles.cardHint}>
-              Confirmá que la sesión se realizó correctamente y la mascota está bien.
-            </Text>
+            <Text style={styles.cardTitle}>{t('monitoring.verification')}</Text>
+            <Text style={styles.cardHint}>{t('monitoring.verification_hint')}</Text>
             <TouchableOpacity
               style={[styles.btn, styles.btnSuccess]}
               onPress={() =>
-                Alert.alert('Verificar sesión', '¿Confirmás que esta sesión se completó?', [
-                  { text: 'Cancelar', style: 'cancel' },
-                  { text: 'Verificar', onPress: () => verify.mutate() },
+                Alert.alert(t('monitoring.verify_alert_title'), t('monitoring.verify_alert_msg'), [
+                  { text: t('common.cancel'), style: 'cancel' },
+                  { text: t('monitoring.verify_btn'), onPress: () => verify.mutate() },
                 ])
               }
             >
-              <Text style={styles.btnText}>✅ Marcar como completada</Text>
+              <Text style={styles.btnText}>{t('monitoring.mark_completed')}</Text>
             </TouchableOpacity>
           </View>
         )}
 
         {session.status === 'completed' && session.notes && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>Notas del verificador</Text>
+            <Text style={styles.cardTitle}>{t('monitoring.notes_title')}</Text>
             <Text style={styles.cardValue}>{session.notes}</Text>
           </View>
         )}

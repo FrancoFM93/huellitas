@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Colors } from '@/constants/colors'
 
@@ -14,6 +15,7 @@ const SPECIES_ICONS: Record<string, string> = {
 }
 
 export default function PublicProfile() {
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
 
   const { data: profile, isLoading } = useQuery({
@@ -61,9 +63,9 @@ export default function PublicProfile() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Perfil</Text>
+        <Text style={styles.topBarTitle}>{t('profile.public_title')}</Text>
         <View style={{ width: 60 }} />
       </View>
 
@@ -78,9 +80,9 @@ export default function PublicProfile() {
           )}
           <Text style={styles.name}>{profile.name}</Text>
           <View style={styles.badges}>
-            {profile.type === 'vet' && <Badge text="🩺 Veterinario" />}
-            {profile.type === 'clinic' && <Badge text="🏥 Clínica" />}
-            {profile.verified && <Badge text="✅ Verificado" tone="success" />}
+            {profile.type === 'vet' && <Badge text={t('profile.public_vet_badge')} />}
+            {profile.type === 'clinic' && <Badge text={t('profile.public_clinic_badge')} />}
+            {profile.verified && <Badge text={t('profile.public_verified_badge')} tone="success" />}
           </View>
           {!!cityLine && <Text style={styles.city}>📍 {cityLine}</Text>}
           {!!profile.bio && <Text style={styles.bio}>{profile.bio}</Text>}
@@ -88,8 +90,8 @@ export default function PublicProfile() {
 
         {totalPosts > 0 && (
           <View style={styles.statsRow}>
-            <Stat value={totalPosts} label="Publicaciones" />
-            <Stat value={adopted} label="Adoptadas" />
+            <Stat value={totalPosts} label={t('profile.public_stat_posts')} />
+            <Stat value={adopted} label={t('profile.public_stat_adopted')} />
           </View>
         )}
 
@@ -99,14 +101,14 @@ export default function PublicProfile() {
             onPress={() => router.push(profile.type === 'vet' ? `/vets/${profile.id}` : `/clinics/${profile.id}`)}
           >
             <Text style={styles.linkBtnText}>
-              {profile.type === 'vet' ? 'Ver perfil profesional →' : 'Ver clínica →'}
+              {profile.type === 'vet' ? t('profile.public_view_vet') : t('profile.public_view_clinic')}
             </Text>
           </TouchableOpacity>
         )}
 
-        <Text style={styles.sectionTitle}>Publicaciones de adopción</Text>
+        <Text style={styles.sectionTitle}>{t('profile.public_section_posts')}</Text>
         {totalPosts === 0 ? (
-          <Text style={styles.empty}>Sin publicaciones todavía</Text>
+          <Text style={styles.empty}>{t('profile.public_no_posts')}</Text>
         ) : (
           posts!.map((p: any) => (
             <TouchableOpacity
@@ -124,8 +126,8 @@ export default function PublicProfile() {
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{p.name}</Text>
                 <Text style={styles.rowMeta}>
-                  {p.status === 'available' ? '✅ Disponible' :
-                    p.status === 'reserved' ? '⏳ Reservado' : '🏠 Adoptado'}
+                  {p.status === 'available' ? t('profile.post_available') :
+                    p.status === 'reserved' ? t('profile.post_reserved') : t('profile.post_adopted')}
                 </Text>
               </View>
               <Text style={styles.chevron}>›</Text>

@@ -5,11 +5,13 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
 
 export default function ApplyScreen() {
+  const { t } = useTranslation()
   const { postId } = useLocalSearchParams<{ postId: string }>()
   const { profile } = useAuthStore()
   const [message, setMessage] = useState('')
@@ -18,7 +20,7 @@ export default function ApplyScreen() {
 
   const handleSubmit = async () => {
     if (!message.trim()) {
-      Alert.alert('Campo requerido', 'Escribe un mensaje para el dueño')
+      Alert.alert(t('adoption.apply_required_title'), t('adoption.apply_required_msg'))
       return
     }
     if (!profile) return
@@ -33,11 +35,11 @@ export default function ApplyScreen() {
     setSaving(false)
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert(t('common.error'), error.message)
       return
     }
 
-    Alert.alert('¡Solicitud enviada!', 'El dueño revisará tu mensaje pronto.', [
+    Alert.alert(t('adoption.apply_sent_title'), t('adoption.apply_sent_msg'), [
       { text: 'OK', onPress: () => router.back() },
     ])
   }
@@ -50,25 +52,22 @@ export default function ApplyScreen() {
       >
         <View style={styles.topBar}>
           <TouchableOpacity onPress={() => router.back()}>
-            <Text style={styles.cancelText}>Cancelar</Text>
+            <Text style={styles.cancelText}>{t('common.cancel')}</Text>
           </TouchableOpacity>
-          <Text style={styles.topBarTitle}>Solicitar adopción</Text>
+          <Text style={styles.topBarTitle}>{t('adoption.apply_title')}</Text>
           <View style={{ width: 60 }} />
         </View>
 
         <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
-          <Text style={styles.helper}>
-            Cuéntale al dueño sobre ti: con quién vives, qué experiencia tienes con mascotas,
-            por qué quieres adoptarlo/a.
-          </Text>
+          <Text style={styles.helper}>{t('adoption.apply_helper')}</Text>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Mensaje *</Text>
+            <Text style={styles.label}>{t('adoption.apply_message')}</Text>
             <TextInput
               style={[styles.input, styles.textarea]}
               value={message}
               onChangeText={setMessage}
-              placeholder="Hola, me gustaría adoptar..."
+              placeholder={t('adoption.apply_message_placeholder')}
               placeholderTextColor={Colors.textDisabled}
               multiline
               textAlignVertical="top"
@@ -78,12 +77,12 @@ export default function ApplyScreen() {
           </View>
 
           <View style={styles.field}>
-            <Text style={styles.label}>Teléfono de contacto</Text>
+            <Text style={styles.label}>{t('adoption.apply_phone')}</Text>
             <TextInput
               style={styles.input}
               value={phone}
               onChangeText={setPhone}
-              placeholder="+54 9 11 ..."
+              placeholder={t('adoption.apply_phone_placeholder')}
               placeholderTextColor={Colors.textDisabled}
               keyboardType="phone-pad"
             />
@@ -96,7 +95,7 @@ export default function ApplyScreen() {
           >
             {saving
               ? <ActivityIndicator color={Colors.white} />
-              : <Text style={styles.submitBtnText}>Enviar solicitud</Text>}
+              : <Text style={styles.submitBtnText}>{t('adoption.apply_send')}</Text>}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
