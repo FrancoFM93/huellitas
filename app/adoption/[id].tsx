@@ -10,6 +10,7 @@ const CAROUSEL_HEIGHT = 280
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
@@ -50,6 +51,7 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function AdoptionDetail() {
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { profile } = useAuthStore()
   const qc = useQueryClient()
@@ -78,7 +80,7 @@ export default function AdoptionDetail() {
       qc.invalidateQueries({ queryKey: ['adoption', id] })
       qc.invalidateQueries({ queryKey: ['adoptions'] })
     },
-    onError: (e: Error) => Alert.alert('Error', e.message),
+    onError: (e: Error) => Alert.alert(t('common.error'), e.message),
   })
 
   const isPosterOwner = !!post && !!profile && profile.id === post.poster_id
@@ -105,9 +107,9 @@ export default function AdoptionDetail() {
       qc.invalidateQueries({ queryKey: ['apps', id] })
       qc.invalidateQueries({ queryKey: ['adoption', id] })
       qc.invalidateQueries({ queryKey: ['adoptions'] })
-      Alert.alert('¡Aprobado!', 'Contrato creado con sesiones de seguimiento.')
+      Alert.alert(t('adoption.approved_alert_title'), t('adoption.approved_alert_msg'))
     },
-    onError: (e: Error) => Alert.alert('Error', e.message),
+    onError: (e: Error) => Alert.alert(t('common.error'), e.message),
   })
 
   if (isLoading || !post) {
@@ -127,34 +129,34 @@ export default function AdoptionDetail() {
     adopted: Colors.textMuted,
   }
   const STATUS_LABELS = {
-    available: '✅ Disponible',
-    reserved: '⏳ Reservado',
-    adopted: '🏠 Ya adoptado',
+    available: t('profile.post_available'),
+    reserved: t('profile.post_reserved'),
+    adopted: t('profile.post_adopted'),
   }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>← Volver</Text>
+          <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
         {isOwner && (
           <TouchableOpacity
             onPress={() => {
               const options: any[] = [
-                { text: 'Cancelar', style: 'cancel' },
-                { text: 'Editar publicación', onPress: () => router.push(`/adoption/edit/${post.id}`) },
+                { text: t('common.cancel'), style: 'cancel' },
+                { text: t('adoption.edit_post'), onPress: () => router.push(`/adoption/edit/${post.id}`) },
               ]
               if (post.status === 'available') {
                 options.push(
-                  { text: 'Marcar como reservado', onPress: () => markAdoptedMutation.mutate('reserved') },
-                  { text: '¡Ya fue adoptado! 🎉', onPress: () => markAdoptedMutation.mutate('adopted') },
+                  { text: t('adoption.mark_reserved'), onPress: () => markAdoptedMutation.mutate('reserved') },
+                  { text: t('adoption.mark_adopted'), onPress: () => markAdoptedMutation.mutate('adopted') },
                 )
               }
-              Alert.alert('Publicación', 'Elegí qué hacer', options)
+              Alert.alert(t('adoption.mark_status'), t('adoption.mark_status_msg'), options)
             }}
           >
-            <Text style={styles.editText}>Actualizar</Text>
+            <Text style={styles.editText}>{t('common.update')}</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -222,7 +224,7 @@ export default function AdoptionDetail() {
 
         {/* Description */}
         <View style={styles.descCard}>
-          <Text style={styles.descTitle}>Sobre {post.name}</Text>
+          <Text style={styles.descTitle}>{t('adoption.about', { name: post.name })}</Text>
           <Text style={styles.desc}>{post.description}</Text>
         </View>
 
@@ -248,11 +250,11 @@ export default function AdoptionDetail() {
             </View>
             <View style={{ flex: 1 }}>
               <View style={styles.posterNameRow}>
-                <Text style={styles.posterName}>{posterProfile?.name ?? 'Anónimo'}</Text>
+                <Text style={styles.posterName}>{posterProfile?.name ?? t('common.anonymous')}</Text>
                 {posterProfile?.type === 'fundacion' && (
                   <View style={[styles.orgBadge, posterProfile?.verified && styles.orgBadgeVerified]}>
                     <Text style={styles.orgBadgeText}>
-                      {posterProfile?.verified ? '🏛️ Fundación verificada' : '🏛️ Fundación'}
+                      {posterProfile?.verified ? t('adoption.fundacion_verified') : t('adoption.fundacion_label')}
                     </Text>
                   </View>
                 )}
@@ -269,26 +271,26 @@ export default function AdoptionDetail() {
             style={styles.applyBtn}
             onPress={() => router.push(`/adoption/apply/${post.id}`)}
           >
-            <Text style={styles.applyBtnText}>📝 Solicitar adopción</Text>
+            <Text style={styles.applyBtnText}>{t('adoption.apply_btn')}</Text>
           </TouchableOpacity>
         )}
 
         {/* Applications list (poster only) */}
         {isOwner && (apps ?? []).length > 0 && (
           <View style={styles.appsCard}>
-            <Text style={styles.appsTitle}>Solicitudes ({apps!.length})</Text>
+            <Text style={styles.appsTitle}>{t('adoption.applications_count', { count: apps!.length })}</Text>
             {apps!.map((a: any) => (
               <View key={a.id} style={styles.appRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.appName}>{a.applicant?.name ?? 'Anónimo'}</Text>
+                  <Text style={styles.appName}>{a.applicant?.name ?? t('common.anonymous')}</Text>
                   <Text style={styles.appMessage} numberOfLines={3}>{a.message}</Text>
                   {a.contact_phone && (
                     <Text style={styles.appPhone}>📞 {a.contact_phone}</Text>
                   )}
                   <Text style={[styles.appStatus, a.status === 'approved' && styles.appStatusApproved, a.status === 'rejected' && styles.appStatusRejected]}>
-                    {a.status === 'pending' ? '⏳ Pendiente' :
-                      a.status === 'approved' ? '✅ Aprobada' :
-                      a.status === 'rejected' ? '❌ Rechazada' : '🚫 Retirada'}
+                    {a.status === 'pending' ? t('adoption.applicant_pending') :
+                      a.status === 'approved' ? t('adoption.applicant_approved') :
+                      a.status === 'rejected' ? t('adoption.applicant_rejected') : t('adoption.applicant_withdrawn')}
                   </Text>
                 </View>
                 {a.status === 'pending' && post.status === 'available' && (
@@ -296,16 +298,16 @@ export default function AdoptionDetail() {
                     style={styles.approveBtn}
                     onPress={() =>
                       Alert.alert(
-                        'Aprobar solicitud',
-                        `Al aprobar a ${a.applicant?.name ?? 'este adoptante'}, se creará un contrato de seguimiento y la publicación se marcará como adoptada.`,
+                        t('adoption.approve_title'),
+                        t('adoption.approve_msg', { name: a.applicant?.name ?? t('common.anonymous') }),
                         [
-                          { text: 'Cancelar', style: 'cancel' },
-                          { text: 'Aprobar', onPress: () => approveMutation.mutate(a.id) },
+                          { text: t('common.cancel'), style: 'cancel' },
+                          { text: t('adoption.approve_btn'), onPress: () => approveMutation.mutate(a.id) },
                         ]
                       )
                     }
                   >
-                    <Text style={styles.approveBtnText}>Aprobar</Text>
+                    <Text style={styles.approveBtnText}>{t('adoption.approve_btn')}</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -316,7 +318,7 @@ export default function AdoptionDetail() {
         {/* Contact */}
         {post.status !== 'adopted' && (
           <View style={styles.contactCard}>
-            <Text style={styles.contactTitle}>¿Te interesa adoptarlo/a?</Text>
+            <Text style={styles.contactTitle}>{t('adoption.interested')}</Text>
             <Text style={styles.contactInfo}>{post.contact_info}</Text>
 
             {post.contact_info.includes('@') && (

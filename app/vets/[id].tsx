@@ -69,13 +69,13 @@ export default function VetDetail() {
 
   const startMessage = async () => {
     if (!me || !me.id) {
-      Alert.alert('Inicio de sesión', 'Necesitás una cuenta para enviar mensajes.')
+      Alert.alert('Inicio de sesión', 'Necesitas una cuenta para enviar mensajes.')
       return
     }
     const vetProfileId = (vet.profile as any)?.id
     if (!vetProfileId) return
     if (vetProfileId === me.id) {
-      Alert.alert('No disponible', 'No podés iniciar una conversación con vos mismo.')
+      Alert.alert('No disponible', 'No puedes iniciar una conversación contigo mismo.')
       return
     }
     const { data: existing } = await supabase

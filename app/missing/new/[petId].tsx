@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
@@ -12,6 +13,7 @@ import * as Location from 'expo-location'
 import type { Pet } from '@/types'
 
 export default function ReportMissing() {
+  const { t } = useTranslation()
   const { petId } = useLocalSearchParams<{ petId: string }>()
   const { profile } = useAuthStore()
 
@@ -34,7 +36,7 @@ export default function ReportMissing() {
       const p = data as Pet | null
       setPet(p)
       if (p && profile && p.owner_id !== profile.id) {
-        Alert.alert('Sin permisos', 'Solo el dueño puede reportar a esta mascota.')
+        Alert.alert(t('missing.report_no_owner_title'), t('missing.report_no_owner_msg'))
         router.back()
         return
       }
@@ -48,7 +50,7 @@ export default function ReportMissing() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== 'granted') {
-        Alert.alert('Permiso denegado', 'Necesitamos acceso a tu ubicación para fijar el último avistamiento.')
+        Alert.alert(t('missing.report_loc_denied_title'), t('missing.report_loc_denied_msg'))
         return
       }
       const pos = await Location.getCurrentPositionAsync({})
@@ -60,7 +62,7 @@ export default function ReportMissing() {
         if (parts.length > 0 && !address.trim()) setAddress(parts.join(', '))
       } catch {}
     } catch {
-      Alert.alert('Error', 'No se pudo obtener tu ubicación actual.')
+      Alert.alert(t('missing.report_loc_error_title'), t('missing.report_loc_error_msg'))
     } finally {
       setLocating(false)
     }
@@ -73,21 +75,21 @@ export default function ReportMissing() {
   const handleSubmit = async () => {
     if (!pet || !profile) return
     if (!address.trim()) {
-      Alert.alert('Falta la ubicación', 'Ingresá la zona donde se vio por última vez.')
+      Alert.alert(t('missing.report_no_zone_title'), t('missing.report_no_zone_msg'))
       return
     }
     if (!description.trim()) {
-      Alert.alert('Falta la descripción', 'Contá qué ropa/collar tenía, dirección de fuga, etc.')
+      Alert.alert(t('missing.report_no_desc_title'), t('missing.report_no_desc_msg'))
       return
     }
     if (lastSeenAt.getTime() > Date.now()) {
-      Alert.alert('Fecha inválida', 'La fecha del último avistamiento no puede ser futura.')
+      Alert.alert(t('missing.report_invalid_date_title'), t('missing.report_invalid_date_msg'))
       return
     }
 
     setSaving(true)
     const { error: updErr } = await supabase.from('pets').update({ is_missing: true }).eq('id', petId)
-    if (updErr) { setSaving(false); Alert.alert('Error', updErr.message); return }
+    if (updErr) { setSaving(false); Alert.alert(t('common.error'), updErr.message); return }
 
     const { error } = await supabase.from('missing_pet_reports').insert({
       pet_id: petId,
@@ -103,13 +105,13 @@ export default function ReportMissing() {
     setSaving(false)
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert(t('common.error'), error.message)
       return
     }
 
     Alert.alert(
-      'Reporte publicado',
-      `Se notificará a la comunidad para ayudar a encontrar a ${pet.name}.`,
+      t('missing.report_published_title'),
+      t('missing.report_published_msg', { name: pet.name }),
       [{ text: 'OK', onPress: () => router.replace('/(tabs)') }]
     )
   }
@@ -118,7 +120,7 @@ export default function ReportMissing() {
     return <View style={styles.loader}><ActivityIndicator color={Colors.primary} /></View>
   }
   if (!pet) {
-    return <SafeAreaView style={styles.container}><Text style={styles.empty}>Mascota no encontrada</Text></SafeAreaView>
+    return <SafeAreaView style={styles.container}><Text style={styles.empty}>{t('missing.pet_not_found')}</Text></SafeAreaView>
   }
 
   const dateLabel = lastSeenAt.toLocaleDateString()
@@ -129,35 +131,33 @@ export default function ReportMissing() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.cancelText}>Cancelar</Text>
+          <Text style={styles.cancelText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Reportar perdida</Text>
+        <Text style={styles.topBarTitle}>{t('missing.report_title')}</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={saving}>
           {saving
             ? <ActivityIndicator color={Colors.primary} size="small" />
-            : <Text style={styles.publishText}>Publicar</Text>}
+            : <Text style={styles.publishText}>{t('common.publish')}</Text>}
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
         <View style={styles.banner}>
-          <Text style={styles.bannerText}>
-            🚨 Reportá la última ubicación con la mayor precisión posible. Cada minuto cuenta.
-          </Text>
+          <Text style={styles.bannerText}>{t('missing.report_banner')}</Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Mascota</Text>
+          <Text style={styles.label}>{t('missing.report_pet_label')}</Text>
           <Text style={styles.petName}>{pet.name}</Text>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Última zona vista *</Text>
+          <Text style={styles.label}>{t('missing.report_zone')}</Text>
           <TextInput
             style={styles.input}
             value={address}
             onChangeText={setAddress}
-            placeholder="Ej: Plaza Italia, Palermo"
+            placeholder={t('missing.report_zone_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             autoCapitalize="words"
           />
@@ -169,7 +169,7 @@ export default function ReportMissing() {
             {locating
               ? <ActivityIndicator color={Colors.primary} />
               : <Text style={styles.locBtnText}>
-                  {locFixed ? '📍 Ubicación fijada · cambiar' : '📍 Usar mi ubicación actual'}
+                  {locFixed ? t('missing.loc_fixed') : t('missing.loc_use_current')}
                 </Text>}
           </TouchableOpacity>
           {locFixed && (
@@ -180,35 +180,33 @@ export default function ReportMissing() {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Cuándo se vio por última vez</Text>
+          <Text style={styles.label}>{t('missing.report_when')}</Text>
           <View style={styles.timeRow}>
             <View style={styles.timeChip}>
-              <Text style={styles.timeChipLabel}>Fecha</Text>
+              <Text style={styles.timeChipLabel}>{t('missing.report_date')}</Text>
               <Text style={styles.timeChipValue}>{dateLabel}</Text>
             </View>
             <View style={styles.timeChip}>
-              <Text style={styles.timeChipLabel}>Hora</Text>
+              <Text style={styles.timeChipLabel}>{t('missing.report_hour')}</Text>
               <Text style={styles.timeChipValue}>{timeLabel}</Text>
             </View>
           </View>
           <View style={styles.adjustRow}>
-            <AdjustBtn label="−1 día"  onPress={() => adjustDate(-60 * 24)} />
-            <AdjustBtn label="−1 hora" onPress={() => adjustDate(-60)} />
-            <AdjustBtn label="−15 min" onPress={() => adjustDate(-15)} />
-            <AdjustBtn label="ahora"   onPress={() => setLastSeenAt(new Date())} />
+            <AdjustBtn label={t('missing.adjust_minus_day')}   onPress={() => adjustDate(-60 * 24)} />
+            <AdjustBtn label={t('missing.adjust_minus_hour')}  onPress={() => adjustDate(-60)} />
+            <AdjustBtn label={t('missing.adjust_minus_15min')} onPress={() => adjustDate(-15)} />
+            <AdjustBtn label={t('missing.adjust_now')}         onPress={() => setLastSeenAt(new Date())} />
           </View>
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Descripción *</Text>
-          <Text style={styles.hint}>
-            Collar, ropa, dirección en la que escapó, comportamiento (asustado, sociable), número de contacto.
-          </Text>
+          <Text style={styles.label}>{t('missing.report_description')}</Text>
+          <Text style={styles.hint}>{t('missing.report_description_hint')}</Text>
           <TextInput
             style={[styles.input, styles.textarea]}
             value={description}
             onChangeText={setDescription}
-            placeholder={`${pet.name} se escapó... `}
+            placeholder={t('missing.report_description_placeholder', { name: pet.name })}
             placeholderTextColor={Colors.textDisabled}
             multiline
             textAlignVertical="top"
@@ -218,10 +216,10 @@ export default function ReportMissing() {
         </View>
 
         <View style={styles.tipsCard}>
-          <Text style={styles.tipsTitle}>Consejos rápidos</Text>
-          <Text style={styles.tip}>• Mostrá las fotos del perfil de la mascota — ya están en el reporte.</Text>
-          <Text style={styles.tip}>• Avisá a vecinos, veterinarias y refugios cercanos.</Text>
-          <Text style={styles.tip}>• Si lo/la encontrás, marcalo/a como "encontrado" para limpiar el aviso.</Text>
+          <Text style={styles.tipsTitle}>{t('missing.report_tips_title')}</Text>
+          <Text style={styles.tip}>• {t('missing.report_tip_1')}</Text>
+          <Text style={styles.tip}>• {t('missing.report_tip_2')}</Text>
+          <Text style={styles.tip}>• {t('missing.report_tip_3')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>

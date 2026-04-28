@@ -143,7 +143,7 @@ export default function EditPet() {
               <TouchableOpacity
                 key={url}
                 onLongPress={() =>
-                  Alert.alert('Eliminar foto', '¿Querés quitar esta foto?', [
+                  Alert.alert('Eliminar foto', '¿Quieres quitar esta foto?', [
                     { text: 'Cancelar', style: 'cancel' },
                     { text: 'Eliminar', style: 'destructive', onPress: () => handleRemovePhoto(url) },
                   ])

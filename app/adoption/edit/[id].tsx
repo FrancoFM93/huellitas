@@ -6,6 +6,7 @@ import {
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { usePhotoUpload } from '@/lib/usePhotoUpload'
@@ -14,39 +15,37 @@ import type { PetSpecies, AdoptionPost } from '@/types'
 
 const MAX_PHOTOS = 5
 
-const SPECIES: { value: PetSpecies; label: string; icon: string }[] = [
-  { value: 'dog', label: 'Perro', icon: '🐶' },
-  { value: 'cat', label: 'Gato', icon: '🐱' },
-  { value: 'bird', label: 'Ave', icon: '🐦' },
-  { value: 'rabbit', label: 'Conejo', icon: '🐰' },
-  { value: 'other', label: 'Otro', icon: '🐾' },
-]
-
-const AGE_RANGES = [
-  { value: 'puppy', label: 'Cachorro', desc: '0 – 1 año' },
-  { value: 'young', label: 'Joven', desc: '1 – 3 años' },
-  { value: 'adult', label: 'Adulto', desc: '3 – 8 años' },
-  { value: 'senior', label: 'Mayor', desc: '8+ años' },
-]
-
-const SEX_OPTIONS: { value: 'male' | 'female' | 'unknown'; label: string; icon: string }[] = [
-  { value: 'male', label: 'Macho', icon: '♂' },
-  { value: 'female', label: 'Hembra', icon: '♀' },
-  { value: 'unknown', label: 'No sé', icon: '?' },
-]
-
-const HEALTH_OPTIONS: { value: 'healthy' | 'treatment' | 'chronic' | 'special_needs'; label: string; desc: string }[] = [
-  { value: 'healthy', label: 'Saludable', desc: 'Sin condiciones' },
-  { value: 'treatment', label: 'En tratamiento', desc: 'Temporal' },
-  { value: 'chronic', label: 'Crónica', desc: 'Medicación permanente' },
-  { value: 'special_needs', label: 'Necesidades especiales', desc: 'Requiere cuidados extra' },
-]
-
 export default function EditAdoption() {
+  const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
   const { profile } = useAuthStore()
   const qc = useQueryClient()
   const { upload, uploading } = usePhotoUpload()
+
+  const SPECIES: { value: PetSpecies; label: string; icon: string }[] = [
+    { value: 'dog', label: t('pets.dog'), icon: '🐶' },
+    { value: 'cat', label: t('pets.cat'), icon: '🐱' },
+    { value: 'bird', label: t('pets.bird'), icon: '🐦' },
+    { value: 'rabbit', label: t('pets.rabbit'), icon: '🐰' },
+    { value: 'other', label: t('pets.other'), icon: '🐾' },
+  ]
+  const AGE_RANGES = [
+    { value: 'puppy',  label: t('adoption.age_puppy_label',  { defaultValue: 'Cachorro' }), desc: '0 – 1' },
+    { value: 'young',  label: t('adoption.age_young_label',  { defaultValue: 'Joven' }),    desc: '1 – 3' },
+    { value: 'adult',  label: t('adoption.age_adult_label',  { defaultValue: 'Adulto' }),   desc: '3 – 8' },
+    { value: 'senior', label: t('adoption.age_senior_label', { defaultValue: 'Mayor' }),    desc: '8+' },
+  ]
+  const SEX_OPTIONS: { value: 'male' | 'female' | 'unknown'; label: string; icon: string }[] = [
+    { value: 'male',    label: t('adoption.sex_male'),    icon: '♂' },
+    { value: 'female',  label: t('adoption.sex_female'),  icon: '♀' },
+    { value: 'unknown', label: t('adoption.sex_unknown'), icon: '?' },
+  ]
+  const HEALTH_OPTIONS: { value: 'healthy' | 'treatment' | 'chronic' | 'special_needs'; label: string; desc: string }[] = [
+    { value: 'healthy',        label: t('adoption.health_healthy'),    desc: t('adoption.health_healthy_desc') },
+    { value: 'treatment',      label: t('adoption.health_treatment'),  desc: t('adoption.health_treatment_desc') },
+    { value: 'chronic',        label: t('adoption.health_chronic'),    desc: t('adoption.health_chronic_desc') },
+    { value: 'special_needs',  label: t('adoption.health_special'),    desc: t('adoption.health_special_desc') },
+  ]
 
   const [loadingInitial, setLoadingInitial] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -81,7 +80,7 @@ export default function EditAdoption() {
       const post = data as AdoptionPost | null
       if (!post) { setNotFound(true); setLoadingInitial(false); return }
       if (profile && post.poster_id !== profile.id) {
-        Alert.alert('Sin permisos', 'Solo el autor puede editar esta publicación.')
+        Alert.alert(t('adoption.not_allowed_title'), t('adoption.not_allowed_edit'))
         router.back()
         return
       }
@@ -108,7 +107,7 @@ export default function EditAdoption() {
 
   const addPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) {
-      Alert.alert('Máximo alcanzado', `Hasta ${MAX_PHOTOS} fotos por publicación`)
+      Alert.alert(t('adoption.photos_max_title'), t('adoption.photos_max_msg', { count: MAX_PHOTOS }))
       return
     }
     const url = await upload({ folder: 'adoption', allowsEditing: false })
@@ -119,7 +118,7 @@ export default function EditAdoption() {
 
   const handleSave = async () => {
     if (!name.trim() || !description.trim() || !location.trim() || !contactInfo.trim()) {
-      Alert.alert('Campos requeridos', 'Completa nombre, descripción, zona y contacto')
+      Alert.alert(t('common.required_fields'), t('adoption.required_msg'))
       return
     }
     setSaving(true)
@@ -144,7 +143,7 @@ export default function EditAdoption() {
     setSaving(false)
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert(t('common.error'), error.message)
       return
     }
     qc.invalidateQueries({ queryKey: ['adoption', id] })

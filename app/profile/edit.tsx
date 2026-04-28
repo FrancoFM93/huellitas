@@ -187,7 +187,7 @@ export default function EditProfile() {
               style={[styles.input, styles.textarea]}
               value={bio}
               onChangeText={setBio}
-              placeholder="Contanos algo sobre vos..."
+              placeholder="Cuéntanos algo sobre ti..."
               placeholderTextColor={Colors.textDisabled}
               multiline
               textAlignVertical="top"

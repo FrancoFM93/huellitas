@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { usePhotoUpload } from '@/lib/usePhotoUpload'
@@ -13,36 +14,35 @@ import type { PetSpecies } from '@/types'
 
 const MAX_PHOTOS = 5
 
-const SPECIES: { value: PetSpecies; label: string; icon: string }[] = [
-  { value: 'dog', label: 'Perro', icon: '🐶' },
-  { value: 'cat', label: 'Gato', icon: '🐱' },
-  { value: 'bird', label: 'Ave', icon: '🐦' },
-  { value: 'rabbit', label: 'Conejo', icon: '🐰' },
-  { value: 'other', label: 'Otro', icon: '🐾' },
-]
-
-const AGE_RANGES: { value: string; label: string; desc: string }[] = [
-  { value: 'puppy', label: 'Cachorro', desc: '0 – 1 año' },
-  { value: 'young', label: 'Joven', desc: '1 – 3 años' },
-  { value: 'adult', label: 'Adulto', desc: '3 – 8 años' },
-  { value: 'senior', label: 'Mayor', desc: '8+ años' },
-]
-
-const SEX_OPTIONS: { value: 'male' | 'female' | 'unknown'; label: string; icon: string }[] = [
-  { value: 'male', label: 'Macho', icon: '♂' },
-  { value: 'female', label: 'Hembra', icon: '♀' },
-  { value: 'unknown', label: 'No sé', icon: '?' },
-]
-
-const HEALTH_OPTIONS: { value: 'healthy' | 'treatment' | 'chronic' | 'special_needs'; label: string; desc: string }[] = [
-  { value: 'healthy', label: 'Saludable', desc: 'Sin condiciones' },
-  { value: 'treatment', label: 'En tratamiento', desc: 'Temporal' },
-  { value: 'chronic', label: 'Crónica', desc: 'Medicación permanente' },
-  { value: 'special_needs', label: 'Necesidades especiales', desc: 'Requiere cuidados extra' },
-]
 
 export default function NewAdoption() {
+  const { t } = useTranslation()
   const { profile } = useAuthStore()
+
+  const SPECIES: { value: PetSpecies; label: string; icon: string }[] = [
+    { value: 'dog', label: t('pets.dog'), icon: '🐶' },
+    { value: 'cat', label: t('pets.cat'), icon: '🐱' },
+    { value: 'bird', label: t('pets.bird'), icon: '🐦' },
+    { value: 'rabbit', label: t('pets.rabbit'), icon: '🐰' },
+    { value: 'other', label: t('pets.other'), icon: '🐾' },
+  ]
+  const AGE_RANGES = [
+    { value: 'puppy',  label: t('adoption.age_puppy_label',  { defaultValue: 'Cachorro' }), desc: '0 – 1' },
+    { value: 'young',  label: t('adoption.age_young_label',  { defaultValue: 'Joven' }),    desc: '1 – 3' },
+    { value: 'adult',  label: t('adoption.age_adult_label',  { defaultValue: 'Adulto' }),   desc: '3 – 8' },
+    { value: 'senior', label: t('adoption.age_senior_label', { defaultValue: 'Mayor' }),    desc: '8+' },
+  ]
+  const SEX_OPTIONS: { value: 'male' | 'female' | 'unknown'; label: string; icon: string }[] = [
+    { value: 'male',    label: t('adoption.sex_male'),    icon: '♂' },
+    { value: 'female',  label: t('adoption.sex_female'),  icon: '♀' },
+    { value: 'unknown', label: t('adoption.sex_unknown'), icon: '?' },
+  ]
+  const HEALTH_OPTIONS: { value: 'healthy' | 'treatment' | 'chronic' | 'special_needs'; label: string; desc: string }[] = [
+    { value: 'healthy',        label: t('adoption.health_healthy'),     desc: t('adoption.health_healthy_desc') },
+    { value: 'treatment',      label: t('adoption.health_treatment'),   desc: t('adoption.health_treatment_desc') },
+    { value: 'chronic',        label: t('adoption.health_chronic'),     desc: t('adoption.health_chronic_desc') },
+    { value: 'special_needs',  label: t('adoption.health_special'),     desc: t('adoption.health_special_desc') },
+  ]
   const [species, setSpecies] = useState<PetSpecies>('dog')
   const [name, setName] = useState('')
   const [breed, setBreed] = useState('')
@@ -64,7 +64,7 @@ export default function NewAdoption() {
 
   const addPhoto = async () => {
     if (photos.length >= MAX_PHOTOS) {
-      Alert.alert('Máximo alcanzado', `Hasta ${MAX_PHOTOS} fotos por publicación`)
+      Alert.alert(t('adoption.photos_max_title'), t('adoption.photos_max_msg', { count: MAX_PHOTOS }))
       return
     }
     const url = await upload({ folder: 'adoption', allowsEditing: false })
@@ -75,7 +75,7 @@ export default function NewAdoption() {
 
   const handleSubmit = async () => {
     if (!name.trim() || !description.trim() || !location.trim() || !contactInfo.trim()) {
-      Alert.alert('Campos requeridos', 'Completa nombre, descripción, zona y contacto')
+      Alert.alert(t('common.required_fields'), t('adoption.required_msg', { defaultValue: 'Completa nombre, descripción, zona y contacto' }))
       return
     }
     if (!profile) return
@@ -104,13 +104,13 @@ export default function NewAdoption() {
     setLoading(false)
 
     if (error) {
-      Alert.alert('Error', error.message)
+      Alert.alert(t('common.error'), error.message)
       return
     }
 
     Alert.alert(
-      '¡Publicación creada!',
-      `${name} ya está visible para toda la comunidad.`,
+      t('adoption.created'),
+      t('adoption.created_msg', { name }),
       [{ text: 'OK', onPress: () => router.replace('/(tabs)/adopt') }]
     )
   }
@@ -119,13 +119,13 @@ export default function NewAdoption() {
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.cancelText}>Cancelar</Text>
+          <Text style={styles.cancelText}>{t('common.cancel')}</Text>
         </TouchableOpacity>
-        <Text style={styles.topBarTitle}>Dar en adopción</Text>
+        <Text style={styles.topBarTitle}>{t('adoption.new_title')}</Text>
         <TouchableOpacity onPress={handleSubmit} disabled={loading}>
           {loading
             ? <ActivityIndicator color={Colors.primary} size="small" />
-            : <Text style={styles.publishText}>Publicar</Text>
+            : <Text style={styles.publishText}>{t('common.publish')}</Text>
           }
         </TouchableOpacity>
       </View>
@@ -137,7 +137,7 @@ export default function NewAdoption() {
       >
         {/* Species */}
         <View style={styles.field}>
-          <Text style={styles.label}>Especie</Text>
+          <Text style={styles.label}>{t('adoption.species')}</Text>
           <View style={styles.speciesRow}>
             {SPECIES.map(({ value, label, icon }) => (
               <TouchableOpacity
@@ -156,8 +156,8 @@ export default function NewAdoption() {
 
         {/* Photos */}
         <View style={styles.field}>
-          <Text style={styles.label}>Fotos</Text>
-          <Text style={styles.hint}>Agregá hasta {MAX_PHOTOS} fotos. Las publicaciones con fotos reciben más solicitudes.</Text>
+          <Text style={styles.label}>{t('adoption.photos_label')}</Text>
+          <Text style={styles.hint}>{t('adoption.photos_hint', { count: MAX_PHOTOS })}</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photosRow}>
             {photos.map((url) => (
               <View key={url} style={styles.photoThumb}>
@@ -177,7 +177,7 @@ export default function NewAdoption() {
                   ? <ActivityIndicator color={Colors.primary} />
                   : <>
                       <Text style={styles.photoAddIcon}>＋</Text>
-                      <Text style={styles.photoAddText}>Foto</Text>
+                      <Text style={styles.photoAddText}>{t('adoption.photo_add')}</Text>
                     </>}
               </TouchableOpacity>
             )}
@@ -186,12 +186,12 @@ export default function NewAdoption() {
 
         {/* Name */}
         <View style={styles.field}>
-          <Text style={styles.label}>Nombre o apodo *</Text>
+          <Text style={styles.label}>{t('adoption.name')}</Text>
           <TextInput
             style={styles.input}
             value={name}
             onChangeText={setName}
-            placeholder="¿Cómo se llama?"
+            placeholder={t('adoption.name_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             autoCapitalize="words"
           />
@@ -199,12 +199,12 @@ export default function NewAdoption() {
 
         {/* Breed */}
         <View style={styles.field}>
-          <Text style={styles.label}>Raza</Text>
+          <Text style={styles.label}>{t('adoption.breed')}</Text>
           <TextInput
             style={styles.input}
             value={breed}
             onChangeText={setBreed}
-            placeholder="Ej: Labrador, Mestizo..."
+            placeholder={t('adoption.breed_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             autoCapitalize="words"
           />
@@ -212,7 +212,7 @@ export default function NewAdoption() {
 
         {/* Age range */}
         <View style={styles.field}>
-          <Text style={styles.label}>Edad aproximada</Text>
+          <Text style={styles.label}>{t('adoption.age')}</Text>
           <View style={styles.ageRow}>
             {AGE_RANGES.map(({ value, label, desc }) => (
               <TouchableOpacity
@@ -231,7 +231,7 @@ export default function NewAdoption() {
 
         {/* Sex */}
         <View style={styles.field}>
-          <Text style={styles.label}>Sexo</Text>
+          <Text style={styles.label}>{t('adoption.sex_label')}</Text>
           <View style={styles.ageRow}>
             {SEX_OPTIONS.map(({ value, label, icon }) => (
               <TouchableOpacity
@@ -248,24 +248,24 @@ export default function NewAdoption() {
 
         {/* Color */}
         <View style={styles.field}>
-          <Text style={styles.label}>Color / descripción física</Text>
+          <Text style={styles.label}>{t('adoption.color')}</Text>
           <TextInput
             style={styles.input}
             value={color}
             onChangeText={setColor}
-            placeholder="Ej: Marrón con manchas blancas"
+            placeholder={t('adoption.color_placeholder')}
             placeholderTextColor={Colors.textDisabled}
           />
         </View>
 
         {/* Description */}
         <View style={styles.field}>
-          <Text style={styles.label}>Descripción *</Text>
+          <Text style={styles.label}>{t('adoption.description')}</Text>
           <TextInput
             style={[styles.input, styles.textarea]}
             value={description}
             onChangeText={setDescription}
-            placeholder="Cuéntanos sobre su personalidad, historia, necesidades especiales..."
+            placeholder={t('adoption.description_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             multiline
             textAlignVertical="top"
@@ -276,34 +276,34 @@ export default function NewAdoption() {
 
         {/* Health & behavior toggles */}
         <View style={styles.field}>
-          <Text style={styles.label}>Salud y comportamiento</Text>
+          <Text style={styles.label}>{t('adoption.health')}</Text>
           <View style={styles.togglesCard}>
             <ToggleRow
-              label="💉 Vacunado/a"
+              label={t('adoption.vaccinated')}
               value={isVaccinated}
               onValueChange={setIsVaccinated}
             />
             <View style={styles.divider} />
             <ToggleRow
-              label="✂️ Castrado/a o esterilizado/a"
+              label={t('adoption.neutered')}
               value={isNeutered}
               onValueChange={setIsNeutered}
             />
             <View style={styles.divider} />
             <ToggleRow
-              label="💊 Desparasitado/a"
+              label={t('adoption.dewormed')}
               value={isDewormed}
               onValueChange={setIsDewormed}
             />
             <View style={styles.divider} />
             <ToggleRow
-              label="👶 Bueno/a con niños"
+              label={t('adoption.good_with_kids')}
               value={goodWithKids}
               onValueChange={setGoodWithKids}
             />
             <View style={styles.divider} />
             <ToggleRow
-              label="🐾 Bueno/a con otras mascotas"
+              label={t('adoption.good_with_pets')}
               value={goodWithPets}
               onValueChange={setGoodWithPets}
             />
@@ -312,7 +312,7 @@ export default function NewAdoption() {
 
         {/* Health status */}
         <View style={styles.field}>
-          <Text style={styles.label}>Estado de salud</Text>
+          <Text style={styles.label}>{t('adoption.health_status')}</Text>
           <View style={styles.healthCol}>
             {HEALTH_OPTIONS.map(({ value, label, desc }) => (
               <TouchableOpacity
@@ -334,12 +334,12 @@ export default function NewAdoption() {
 
         {/* Location */}
         <View style={styles.field}>
-          <Text style={styles.label}>Zona / Barrio *</Text>
+          <Text style={styles.label}>{t('adoption.zone')}</Text>
           <TextInput
             style={styles.input}
             value={location}
             onChangeText={setLocation}
-            placeholder="Ej: Palermo, Buenos Aires"
+            placeholder={t('adoption.zone_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             autoCapitalize="words"
           />
@@ -347,12 +347,12 @@ export default function NewAdoption() {
 
         {/* Contact */}
         <View style={styles.field}>
-          <Text style={styles.label}>Información de contacto *</Text>
+          <Text style={styles.label}>{t('adoption.contact')}</Text>
           <TextInput
             style={[styles.input, styles.textarea]}
             value={contactInfo}
             onChangeText={setContactInfo}
-            placeholder="WhatsApp, teléfono, Instagram o email para que los interesados se comuniquen"
+            placeholder={t('adoption.contact_placeholder')}
             placeholderTextColor={Colors.textDisabled}
             multiline
             textAlignVertical="top"
@@ -360,10 +360,7 @@ export default function NewAdoption() {
         </View>
 
         <View style={styles.notice}>
-          <Text style={styles.noticeText}>
-            🐾 Al publicar, te comprometés a realizar un proceso de adopción responsable.
-            Podés pedir referencias, hacer entrevistas y hacer seguimiento post-adopción.
-          </Text>
+          <Text style={styles.noticeText}>{t('adoption.notice')}</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
