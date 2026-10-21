@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { changeLanguage } from '@/lib/i18n'
+import { getNotificationPath } from '@/lib/notificationRouting'
 import { Colors } from '@/constants/colors'
 import type { Pet, AppNotification } from '@/types'
 
@@ -59,6 +60,7 @@ function NotifItem({ item }: { item: AppNotification }) {
     fundraiser_update: '📢',
     vet_message: '🩺',
     new_fundraiser: '💰',
+    broadcast: '📣',
     adoption_application: '📬',
     adoption_decision: '🐾',
     monitoring_ready: '🔔',
@@ -66,13 +68,13 @@ function NotifItem({ item }: { item: AppNotification }) {
   }
 
   const handlePress = () => {
-    markRead(item.id)
-    const m: any = item.metadata ?? {}
-    if (item.type === 'adoption_application' && m.post_id) router.push(`/adoption/${m.post_id}`)
-    else if (item.type === 'adoption_decision' && m.post_id) router.push(`/adoption/${m.post_id}`)
-    else if ((item.type === 'monitoring_ready' || item.type === 'monitoring_verified') && m.session_id)
-      router.push(`/monitoring/${m.session_id}`)
-    else if (item.type === 'vet_message' && m.thread_id) router.push(`/messages/${m.thread_id}`)
+    void markRead(item.id)
+    if (item.type === 'broadcast') {
+      Alert.alert(item.title, item.body)
+      return
+    }
+    const path = getNotificationPath(item.metadata)
+    if (path) router.push(path)
   }
 
   return (

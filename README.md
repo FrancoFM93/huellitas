@@ -1,312 +1,156 @@
-# 🐾 Huellitas
+# Huellitas
 
-A community mobile app for pet welfare. Find lost pets, report animals in danger, connect with vets, adopt, and raise emergency funds — all in one place.
+A community mobile app for pet welfare, built with Expo/React Native and Supabase. The existing product includes pet profiles, lost-pet reports and sightings, community alerts, a professional/organization directory, adoption applications and follow-up, and owner/vet messaging.
 
-Built with **React Native (Expo)** and **Supabase**.
+**Development status:** recovery and stabilization, not ready for a public launch. The October 2026 audit resumes the work on `dev` (`b73a34e`, 17 commits ahead of the older `main`). See [the audit and release plan](docs/AUDIT_2026_10_21.md) for implemented features, confirmed defects, patch scope, and the remaining release criteria.
 
----
+**Fundraising status:** campaigns can be created and browsed, but donations are unavailable. The app does not collect payments. The former client-side donation simulation and display of unverified raised totals have been removed; existing database records have not been deleted.
 
-## Tech stack
+## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | Expo 55 + expo-router (file-based navigation) |
-| Backend | Supabase (Postgres + Auth + Storage + Realtime) |
-| Data fetching | TanStack React Query |
-| Global state | Zustand |
-| Maps | react-native-maps |
-| Translations | i18next + react-i18next + expo-localization |
-| Push notifications | expo-notifications + Supabase Edge Function |
-| Camera / Gallery | expo-image-picker |
-| GPS | expo-location |
+| Area | Technology |
+| --- | --- |
+| Mobile app | Expo SDK 55, React Native 0.83, React 19.2, TypeScript |
+| Navigation | Expo Router |
+| Backend | Supabase Postgres, Auth, Storage, Realtime and Edge Functions |
+| Client data | TanStack Query and Zustand |
+| Localization | i18next, Spanish and English |
+| Device features | Maps, image picker, location and Expo notifications |
+| Regression checks | Node test runner, tsx and PGlite |
 
----
+## Local setup
 
-## Prerequisites
-
-- Node.js 18+
-- Yarn
-- Expo Go app on your phone (for testing), or a simulator
-- A [Supabase](https://supabase.com) account (free tier is enough for everything)
-
----
-
-## Setup
-
-### 1. Install dependencies
+Use **Node.js 24** and **Yarn 1.22.22**. `.nvmrc` and `packageManager` record these choices. The test runner uses Node's `--test-isolation=none` option.
 
 ```bash
-yarn install
+corepack yarn install --frozen-lockfile
 ```
 
-### 2. Environment variables
-
-Copy `.env.example` to `.env` (or edit `.env` directly) and fill in your Supabase credentials:
+Copy `.env.example` to `.env` and provide a Supabase project URL and **public** anon key:
 
 ```env
 EXPO_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your-public-anon-key
 ```
 
-Find these in your Supabase dashboard → **Project Settings → API**.
+Never put service-role keys or webhook secrets in `EXPO_PUBLIC_*` variables; those values are bundled into the client. The app uses Supabase Storage, so no Cloudinary variables are required.
 
-### 3. Supabase — run the SQL files
+### Database: new staging project
 
-Go to your Supabase dashboard → **SQL Editor** and run these files **in order**:
+The repository currently uses a base schema plus manually ordered SQL files. It is not yet a complete Supabase CLI migration project. Do not assume `supabase db push` alone reproduces it.
 
-| File | What it does | Run |
-|------|-------------|-----|
-| `supabase/schema.sql` | All tables, RLS policies, triggers, indexes | First time only |
-| `supabase/storage.sql` | Creates the `photos` bucket for image uploads | First time only |
-| `supabase/push_token_migration.sql` | Adds `push_token` column to `profiles` | First time only |
+For a **new, empty staging project**, apply the following through the SQL Editor in order:
 
-> If you already ran `schema.sql` before, just run `storage.sql` and `push_token_migration.sql`.
+1. `supabase/schema.sql`
+2. `supabase/storage.sql`
+3. Every `.sql` file under `supabase/migrations/`, sorted by filename:
 
-### 4. Run the app
+| Order | Migration suffix | Purpose |
+| --- | --- | --- |
+| 01 | `geo_and_roles` | Geography, foundation type, roles and verification |
+| 02 | `organization_profiles` | Foundation profiles |
+| 03 | `alerts_catastrophe` | Catastrophe alerts and geographic fanout |
+| 04 | `emergency_broadcasts` | Scoped broadcasts |
+| 05 | `adoption_extensions` | Adoption sex and health fields |
+| 06 | `adoption_applications` | Applications |
+| 07 | `contracts_and_monitoring` | Adoption approval and follow-up records |
+| 08 | `adoption_notifications` | Notifications and missed-session routine |
+| 09 | `push_tokens` | Existing profile token column |
+| 10 | `account_deletion` | Deletion-request queue and anonymization |
+| 11 | `vet_messages` | Owner/vet messaging |
+| 12 | `security_baseline` | Restricted client writes and function privileges |
+| 13 | `auth_profile_bootstrap` | Base profile creation and missing-profile backfill |
+
+The first eleven filenames begin `2026_04_21_`; the recovery migrations are `2026_10_21_12_security_baseline.sql` and `2026_10_21_13_auth_profile_bootstrap.sql`. The old standalone `push_token_migration.sql` is superseded by migration 09 and is unnecessary for a new setup.
+
+The base schema is not a safe script to rerun over an existing project: it creates named policies/triggers and initializes the emergency fund. For an **existing project**, first inspect its applied schema, policies/grants, custom Auth triggers and migration records, then apply only missing migrations. Preserve a database backup before rollout. Migration 13 uses a dedicated Auth trigger and does not overwrite existing profiles; inspect any previously hand-created signup trigger to avoid conflicting behavior.
+
+The new SQL tests exercise the repository schema and policies with synthetic identities. They do not inspect or modify your hosted Supabase project. Public profile fields, private media storage, and complete account deactivation remain open release blockers described in the audit.
+
+### Auth and Realtime configuration
+
+Configure enabled login providers, email confirmation and allowed redirect URLs in the staging Supabase project. For installed builds, allow the app's callback URL, normally `huellitas://auth-callback`; development URLs depend on the chosen Expo environment. Google OAuth and email confirmation require real provider configuration and device verification.
+
+Enable the needed tables in the Supabase Realtime publication for the subscribed features. The source subscribes to community alerts, missing reports, notifications and vet messages; inspect the channel declarations when configuring the project. SQL triggers create notification rows, but do not themselves enable Realtime or deliver a push.
+
+### Run
 
 ```bash
-yarn start
+corepack yarn start
 ```
 
-Scan the QR code with **Expo Go** on your phone, or press `i` for iOS simulator / `a` for Android.
+Use a compatible Expo Go installation for supported basic flows, or a native development build. Remote notifications require an appropriate development/production build and FCM/APNs credentials. `eas.json` contains development/preview/production profiles, but those files alone do not establish that a build or its credentials is ready. iOS app identity and native map configuration still need review. Web support has not been established; the app includes native maps and the existing `web` script is not a verified web release.
 
----
-
-## Project structure
-
-```
-huellitas/
-├── app/                        # All screens (expo-router file-based)
-│   ├── (auth)/                 # Auth flow: welcome, login, register, onboarding
-│   ├── (tabs)/                 # Main tab bar: feed, map, search, fund, adopt, profile
-│   ├── alerts/                 # New alert + alert detail
-│   ├── adoption/               # New adoption post + adoption detail
-│   ├── clinics/                # Clinic detail
-│   ├── fundraising/            # New campaign + fundraiser detail
-│   ├── missing/                # Missing pet detail + sighting report
-│   ├── pets/                   # New pet + pet detail + pet edit
-│   ├── profile/                # Profile edit
-│   └── vets/                   # Vet detail
-│
-├── constants/
-│   └── colors.ts               # Shared color palette
-│
-├── lib/
-│   ├── supabase.ts             # Supabase client
-│   ├── queryClient.ts          # React Query client
-│   ├── i18n.ts                 # i18next setup (language detection + persistence)
-│   ├── useLocation.ts          # Hook: GPS + reverse geocode → { lat, lng, address }
-│   └── usePhotoUpload.ts       # Hook: pick image → upload to Supabase Storage → URL
-│
-├── locales/
-│   ├── es.json                 # Spanish translations (default)
-│   └── en.json                 # English translations
-│
-├── store/
-│   ├── authStore.ts            # Auth state: session, profile, vet/clinic sub-profiles
-│   └── notificationStore.ts   # Notifications list + Realtime subscription
-│
-├── supabase/
-│   ├── schema.sql              # Full DB schema
-│   ├── storage.sql             # Storage bucket setup
-│   ├── push_token_migration.sql
-│   └── functions/
-│       └── send-push/
-│           └── index.ts        # Edge Function: sends Expo push notifications
-│
-└── types/
-    └── index.ts                # All TypeScript interfaces
-```
-
----
-
-## Features
-
-### Auth
-- Register as **owner/adopter**, **veterinarian**, or **clinic**
-- Vets and clinics complete an onboarding step with professional details
-- Session persists across app restarts
-
-### Feed (home tab)
-- Combined feed of community alerts and missing pet reports
-- **Realtime** — new posts appear automatically without refresh
-- Pull-to-refresh as fallback
-
-### Map
-- All active alerts and missing pets on an interactive map
-- Filter by alerts / lost pets / all
-- Tap a pin → callout → navigate to detail screen
-
-### Alerts
-- Report an animal in danger with category, urgency level (1–5), and location
-- **GPS button** fills location automatically
-- Severity ≥ 3 triggers automatic notifications to all vets/clinics
-- Community members can respond to alerts
-
-### Missing pets
-- Mark your pet as lost → creates a community report
-- Anyone can report a sighting with GPS location
-- Pet owner is notified instantly when a sighting is reported
-- Map shows last known location
-
-### Vets & Clinics directory
-- Search by name
-- Vet detail: availability badge, specialties, fee, schedule, call/WhatsApp/email buttons
-- Clinic detail: services, 24h emergency badge, "Get directions" to Google Maps
-- **Vets can toggle their availability** from their profile — instantly visible to the community
-
-### Adoption
-- Post animals for adoption with health info, age range, and contact details
-- Filter by species
-- Owner can mark as Reserved or Adopted
-- Contact buttons: WhatsApp, email
-
-### Fundraising
-- Create campaigns for people, animals, or the emergency fund
-- Progress bar with real-time amounts
-- Donation list with messages
-- One-tap contribution to the shared emergency fund
-
-### Profile
-- Avatar photo upload
-- Edit all profile fields (including vet/clinic sub-profiles)
-- Notification inbox with unread counter
-- **Language switcher** (Español / English) — persists across sessions
-
-### Push notifications
-- App registers your device token on login
-- Notifications arrive even when the app is closed
-- Tapping a notification deep-links to the relevant screen
-
----
-
-## Key patterns
-
-### Fetching data
-
-All data fetching uses **React Query**. The pattern is consistent across every screen:
-
-```ts
-const { data, isLoading } = useQuery({
-  queryKey: ['unique-key', id],
-  queryFn: async () => {
-    const { data } = await supabase.from('table').select('*').eq('id', id).single()
-    return data
-  },
-})
-```
-
-After a mutation (insert/update), invalidate the relevant query to refresh:
-
-```ts
-queryClient.invalidateQueries({ queryKey: ['unique-key'] })
-```
-
-### Uploading photos
-
-```ts
-const { upload, uploading } = usePhotoUpload()
-const url = await upload({ folder: 'avatars' }) // returns public URL or null
-```
-
-### GPS location
-
-```ts
-const { getLocation, locating } = useLocation()
-const loc = await getLocation() // { lat, lng, address } or null
-```
-
-### Translations
-
-Every screen uses the same two lines:
-
-```ts
-import { useTranslation } from 'react-i18next'
-const { t } = useTranslation()
-
-// Then in JSX:
-<Text>{t('feed.empty_title')}</Text>
-<Text>{t('pets.registered_msg', { name: pet.name })}</Text>
-```
-
-All keys are defined in `locales/es.json` and `locales/en.json`.
-
-To add a new language, create `locales/xx.json`, add it to `lib/i18n.ts`, and add a button in the profile language picker.
-
-### Realtime
-
-The feed and notification store subscribe to Supabase Realtime channels. The pattern:
-
-```ts
-useEffect(() => {
-  const channel = supabase
-    .channel('my-channel')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'my_table' }, (payload) => {
-      // handle new row
-    })
-    .subscribe()
-
-  return () => { supabase.removeChannel(channel) }
-}, [])
-```
-
----
-
-## Push notifications setup
-
-The app handles token registration automatically. To enable actual push delivery (when the app is closed):
-
-**1. Deploy the Edge Function**
+## Verification commands
 
 ```bash
-# Install Supabase CLI first: https://supabase.com/docs/guides/cli
-supabase login
-supabase link --project-ref your-project-ref
+corepack yarn typecheck
+corepack yarn test
+```
+
+`yarn test` runs the named tests in one process so PGlite SQL tests are actually reported, including their subtests. The SQL harness executes the real schema, migrations, grants, RLS, triggers and functions. It supplies synthetic `auth.users`/`auth.uid()`/API roles, substitutes UUID generation, and skips the unused native PostGIS extension. It is not a replacement for hosted Auth, Storage, Realtime, migration, or device tests.
+
+The test command includes `--no-wasm-code-gc` as a temporary workaround for the [Node 24/V8 WebAssembly code-collection crash](https://github.com/nodejs/node/issues/66366) encountered when repeatedly creating and closing PGlite fixtures. It applies only to this short-lived test process, keeps all assertions enabled, and may retain compiled WebAssembly code until the process exits. Revisit the flag after adopting a Node release with the upstream fix.
+
+For a local Android/iOS JavaScript and Hermes bundle check:
+
+```bash
+corepack yarn expo export --platform android --platform ios --max-workers 2
+```
+
+This checks bundling. It does not generate a signed APK/IPA, deploy the app, or validate native permissions, deep links, maps or push delivery on a physical device. Use staging credentials for interactive testing. CI may use an explicitly nonfunctional placeholder URL/key for bundle-only checks.
+
+The [App checks workflow](.github/workflows/ci.yml) runs locked installation, TypeScript, regression tests and both native bundle exports for pull requests to `dev`/`main` and pushes to those branches. It has read-only repository permissions and uses no Supabase credentials or deployment steps.
+
+For dependency advisories:
+
+```bash
+corepack yarn audit
+```
+
+Registry findings must be triaged by path and actual exposure. Expo/Metro and React Native developer tooling are included in the dependency graph. The [21 October dependency snapshot](docs/dependency-audit-2026-10-21.json) records the bounded `shell-quote` lock update and the 49 remaining distinct advisories. The recovery patch is not a claim of zero vulnerabilities.
+
+## Push webhook setup
+
+The `send-push` function now requires a dedicated **server-side secret** and reads the actual notification row from the database. It rejects attempts to choose a recipient or message through a caller-supplied webhook record.
+
+Before deploying the function:
+
+1. Generate a long random `PUSH_WEBHOOK_SECRET` and save it in the Supabase project's function secrets. Keep it out of the repository and mobile environment.
+2. Configure the `public.notifications` database webhook for `INSERT`, posting to `https://your-project.supabase.co/functions/v1/send-push`.
+3. Add `Content-Type: application/json` and an `x-webhook-secret` header whose value matches the function secret.
+4. Keep the function gateway's authentication enabled and configure the webhook's server-side Authorization header as required by the project. The dedicated secret is an additional check; an ordinary user's JWT is insufficient. Never ship privileged credentials to the app.
+5. Deploy the reviewed function using the authenticated Supabase CLI:
+
+```bash
 supabase functions deploy send-push
 ```
 
-**2. Create a Database Webhook**
+Missing secret configuration returns HTTP 503. Incorrect webhook credentials return HTTP 401. An accepted Expo ticket is reported as **queued**, not as confirmed delivery. Receipt processing, durable retries/idempotency and invalid-token cleanup are still to be implemented. The current one-token-per-profile storage also needs a private multi-device design before public release.
 
-In the Supabase dashboard → **Database → Webhooks → Create new webhook**:
+Apply the notification permission migration and webhook configuration as one staging rollout. Old clients will lose the ability to write simulated donations or notification contents after migration 12, which is intentional.
 
-- Name: `send-push-on-notification`
-- Table: `notifications`
-- Event: `INSERT`
-- URL: `https://your-project.supabase.co/functions/v1/send-push`
-- HTTP method: `POST`
+## Project map
 
-From this point, every notification inserted into the DB (by existing triggers) will automatically be pushed to the user's device.
+| Path | Purpose |
+| --- | --- |
+| `app/(auth)` | Registration, login and specialist onboarding |
+| `app/(tabs)` | Feed, map, directory, campaigns, adoption and own profile |
+| `app/adoption`, `app/monitoring` | Applications, approval records and follow-up |
+| `app/missing`, `app/pets`, `app/alerts` | Pet welfare workflows |
+| `app/messages`, `app/profile` | Messaging and account workflows |
+| `lib/authState.ts`, `store/authStore.ts` | Isolated session/profile lifecycle and Supabase adapter |
+| `store/notificationState.ts` | Notification ownership, unread state and request guards |
+| `supabase` | Base schema, ordered migrations, storage and push function |
+| `tests` | Auth, authorization, bootstrap, notifications, media and webhook regression checks |
+| `docs/AUDIT_2026_10_21.md` | Recovery findings and release acceptance criteria |
+| `docs/superpowers` | Original design and implementation plan, retained as history |
 
-> **Note:** Expo Go on SDK 53+ removed remote push notification support. Push token registration is automatically skipped when running in Expo Go — everything else works normally. To test actual push delivery, use a development build: `npx expo run:android` or `npx expo run:ios`.
+## Development conventions
 
----
-
-## Supabase dashboard — managing your data
-
-You don't need any special account in the app to manage data. The Supabase dashboard gives you full admin access:
-
-- **Table Editor** — browse, edit, or delete any row
-- **SQL Editor** — run any query directly
-- **Storage** — manage uploaded photos
-- **Authentication** — view registered users, ban, reset passwords
-- **Logs** — see Edge Function logs and errors
-
-The RLS (Row Level Security) policies only apply to requests made through the app with the anon key. Dashboard access bypasses them entirely.
-
----
-
-## Adding new screens
-
-1. Create the file under `app/` — expo-router picks it up automatically
-2. Fetch data with `useQuery` + `supabase`
-3. Add any new strings to both `locales/es.json` and `locales/en.json`
-4. Use `useTranslation()` for all visible text
-
----
-
-## Environment variables reference
-
-| Variable | Description |
-|----------|-------------|
-| `EXPO_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon (public) key |
+- Treat `auth.users.id` and `profiles.id` as distinct identifiers; use the foreign key expected by each table.
+- Check Supabase `error` results. Do not report successful mutations before all required server work succeeds.
+- Put ownership and critical state transitions in database authorization/transactions, even when the UI hides a control.
+- Add visible strings to both language files.
+- Keep financial collection disabled until a server-confirmed payment workflow is designed and tested.
+- Use the audit's next milestones to finish existing flows before adding unrelated features.

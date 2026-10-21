@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import {
   View, Text, StyleSheet, TouchableOpacity, ScrollView,
-  ActivityIndicator, Image,
+  Image,
 } from 'react-native'
 import { useLocalSearchParams, router } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +9,17 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { supabase } from '@/lib/supabase'
 import { Colors } from '@/constants/colors'
+import { LoadFeedback } from '@/components/LoadFeedback'
+import type { AdoptionPost, Profile } from '@/types'
+
+type PublicProfileRow = Pick<Profile,
+  'id' | 'type' | 'name' | 'avatar_url' | 'bio' | 'verified' | 'country' | 'region' | 'city_slug' | 'created_at'
+> & {
+  vet: { id: string } | null
+  clinic: { id: string } | null
+}
+
+type ProfilePost = Pick<AdoptionPost, 'id' | 'name' | 'species' | 'age_range' | 'status' | 'photos' | 'created_at'>
 
 const SPECIES_ICONS: Record<string, string> = {
   dog: '🐶', cat: '🐱', bird: '🐦', rabbit: '🐰', other: '🐾',
@@ -18,28 +29,31 @@ export default function PublicProfile() {
   const { t } = useTranslation()
   const { id } = useLocalSearchParams<{ id: string }>()
 
-  const { data: profile, isLoading } = useQuery({
+  const { data: profile, isLoading, isError, refetch } = useQuery({
     queryKey: ['public-profile', id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id,user_id,type,name,avatar_url,bio,verified,country,region,city_slug,created_at')
+        .select('id,type,name,avatar_url,bio,verified,country,region,city_slug,created_at,vet:vet_profiles(id),clinic:clinic_profiles(id)')
         .eq('id', id)
-        .single()
-      return data as any
+        .maybeSingle()
+      if (error) throw error
+      return data as unknown as PublicProfileRow | null
     },
+    enabled: !!id,
   })
 
-  const { data: posts } = useQuery({
+  const { data: posts, isLoading: postsLoading, isError: postsError, refetch: refetchPosts } = useQuery({
     queryKey: ['public-profile-posts', id],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('adoption_posts')
         .select('id,name,species,age_range,status,photos,created_at')
         .eq('poster_id', id)
         .order('created_at', { ascending: false })
         .limit(20)
-      return data ?? []
+      if (error) throw error
+      return (data ?? []) as ProfilePost[]
     },
     enabled: !!id,
   })
@@ -51,18 +65,33 @@ export default function PublicProfile() {
     }
   }, [profile?.id, profile?.type])
 
-  if (isLoading || !profile) {
-    return <View style={styles.loader}><ActivityIndicator color={Colors.primary} /></View>
+  const goBack = () => {
+    if (router.canGoBack()) router.back()
+    else router.replace('/(tabs)/search')
+  }
+
+  if (isLoading || isError || !profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <LoadFeedback
+          loading={isLoading}
+          message={t(isError ? 'common.load_error' : 'profile.public_not_found')}
+          onRetry={isError ? () => { void refetch() } : undefined}
+          onBack={goBack}
+        />
+      </SafeAreaView>
+    )
   }
 
   const cityLine = [profile.region, profile.country].filter(Boolean).join(', ')
   const totalPosts = posts?.length ?? 0
-  const adopted = (posts ?? []).filter((p: any) => p.status === 'adopted').length
+  const adopted = (posts ?? []).filter((p) => p.status === 'adopted').length
+  const professionalId = profile.type === 'vet' ? profile.vet?.id : profile.clinic?.id
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={goBack} accessibilityRole="button">
           <Text style={styles.backText}>{t('profile.back')}</Text>
         </TouchableOpacity>
         <Text style={styles.topBarTitle}>{t('profile.public_title')}</Text>
@@ -90,27 +119,36 @@ export default function PublicProfile() {
 
         {totalPosts > 0 && (
           <View style={styles.statsRow}>
-            <Stat value={totalPosts} label={t('profile.public_stat_posts')} />
+            <Stat value={totalPosts} label={t('profile.public_recent_posts')} />
             <Stat value={adopted} label={t('profile.public_stat_adopted')} />
           </View>
         )}
 
         {(profile.type === 'vet' || profile.type === 'clinic') && (
-          <TouchableOpacity
-            style={styles.linkBtn}
-            onPress={() => router.push(profile.type === 'vet' ? `/vets/${profile.id}` : `/clinics/${profile.id}`)}
-          >
-            <Text style={styles.linkBtnText}>
-              {profile.type === 'vet' ? t('profile.public_view_vet') : t('profile.public_view_clinic')}
-            </Text>
-          </TouchableOpacity>
+          professionalId ? (
+            <TouchableOpacity
+              style={styles.linkBtn}
+              onPress={() => router.push(profile.type === 'vet' ? `/vets/${professionalId}` : `/clinics/${professionalId}`)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.linkBtnText}>
+                {profile.type === 'vet' ? t('profile.public_view_vet') : t('profile.public_view_clinic')}
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <LoadFeedback message={t('profile.professional_not_found')} onRetry={() => { void refetch() }} />
+          )
         )}
 
         <Text style={styles.sectionTitle}>{t('profile.public_section_posts')}</Text>
-        {totalPosts === 0 ? (
+        {postsLoading ? (
+          <LoadFeedback loading />
+        ) : postsError ? (
+          <LoadFeedback message={t('common.load_error')} onRetry={() => { void refetchPosts() }} />
+        ) : totalPosts === 0 ? (
           <Text style={styles.empty}>{t('profile.public_no_posts')}</Text>
         ) : (
-          posts!.map((p: any) => (
+          posts?.map((p) => (
             <TouchableOpacity
               key={p.id}
               style={styles.row}
@@ -158,7 +196,6 @@ function Stat({ value, label }: { value: number; label: string }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  loader: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background },
   topBar: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingHorizontal: 20, paddingVertical: 14,

@@ -216,6 +216,7 @@ export type NotificationType =
   | 'fundraiser_update'
   | 'vet_message'
   | 'new_fundraiser'
+  | 'broadcast'
   | 'adoption_application'
   | 'adoption_decision'
   | 'monitoring_ready'

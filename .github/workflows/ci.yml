@@ -1,0 +1,42 @@
+name: App checks
+
+on:
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_OFFLINE: '1'
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      - name: Install locked dependencies
+        run: corepack yarn@1.22.22 install --frozen-lockfile --ignore-scripts --non-interactive
+      - name: Typecheck
+        run: corepack yarn typecheck
+      - name: Regression tests
+        run: corepack yarn test
+      - name: Export Android and iOS bundles
+        env:
+          EXPO_PUBLIC_SUPABASE_URL: https://example.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: bundle-check-placeholder
+        run: corepack yarn expo export --platform android --platform ios --max-workers 2 --output-dir /tmp/huellitas-native-export

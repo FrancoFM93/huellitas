@@ -10,6 +10,8 @@ import * as Linking from 'expo-linking'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/store/authStore'
 import { Colors } from '@/constants/colors'
+import { exchangeAuthCode } from '@/lib/authCallback'
+import { getPostLoginRoute } from '@/lib/authRouting'
 
 WebBrowser.maybeCompleteAuthSession()
 
@@ -21,8 +23,7 @@ export default function Login() {
   const [googleLoading, setGoogleLoading] = useState(false)
 
   const routeAfterLogin = async () => {
-    const { profile } = useAuthStore.getState()
-    router.replace(profile ? '/(tabs)' : '/(auth)/onboarding')
+    router.replace(getPostLoginRoute(useAuthStore.getState()))
   }
 
   const handleGoogle = async () => {
@@ -47,12 +48,9 @@ export default function Login() {
       const code = (parsed.queryParams?.code as string | undefined) ?? null
       if (!code) throw new Error('Respuesta de Google sin código')
 
-      const { data: exData, error: exErr } = await supabase.auth.exchangeCodeForSession(code)
-      if (exErr) throw exErr
-      if (exData.session) {
-        setSession(exData.session)
-        await fetchProfile(exData.session.user.id)
-      }
+      const session = await exchangeAuthCode(code)
+      setSession(session)
+      await fetchProfile(session.user.id)
       await routeAfterLogin()
     } catch (e: any) {
       Alert.alert('Error', e?.message ?? 'No se pudo iniciar sesión con Google')
@@ -67,24 +65,19 @@ export default function Login() {
       return
     }
     setLoading(true)
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email: email.trim(), password })
+      if (error) throw error
+      if (!data.session) throw new Error('No se obtuvo sesión. Verifica email o contraseña.')
+      setSession(data.session)
+      await fetchProfile(data.session.user.id)
+      await routeAfterLogin()
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'No se pudo iniciar sesión'
+      Alert.alert('Error', message === 'Invalid login credentials' ? 'Email o contraseña incorrectos' : message)
+    } finally {
       setLoading(false)
-      Alert.alert('Error', error.message === 'Invalid login credentials'
-        ? 'Email o contraseña incorrectos'
-        : error.message
-      )
-      return
     }
-    if (!data.session) {
-      setLoading(false)
-      Alert.alert('Error', 'No se obtuvo sesión. Verifica email o contraseña.')
-      return
-    }
-    setSession(data.session)
-    await fetchProfile(data.session.user.id)
-    setLoading(false)
-    await routeAfterLogin()
   }
 
   return (
@@ -135,7 +128,7 @@ export default function Login() {
           <TouchableOpacity
             style={[styles.btn, loading && styles.btnDisabled]}
             onPress={handleLogin}
-            disabled={loading}
+            disabled={loading || googleLoading}
           >
             {loading
               ? <ActivityIndicator color={Colors.white} />
@@ -152,7 +145,7 @@ export default function Login() {
           <TouchableOpacity
             style={[styles.googleBtn, googleLoading && styles.btnDisabled]}
             onPress={handleGoogle}
-            disabled={googleLoading}
+            disabled={googleLoading || loading}
           >
             {googleLoading
               ? <ActivityIndicator color={Colors.text} />
