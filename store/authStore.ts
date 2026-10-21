@@ -1,96 +1,54 @@
 import { create } from 'zustand'
-import type { Session } from '@supabase/supabase-js'
-import type { Profile, VetProfile, ClinicProfile, OrganizationProfile } from '@/types'
 import { supabase } from '@/lib/supabase'
+import { queryClient } from '@/lib/queryClient'
+import { createAuthState, type AuthProfiles, type AuthStore } from '@/lib/authState'
+import { useNotificationStore } from '@/store/notificationStore'
 
-interface AuthStore {
-  session: Session | null
-  profile: Profile | null
-  vetProfile: VetProfile | null
-  clinicProfile: ClinicProfile | null
-  organizationProfile: OrganizationProfile | null
-  isLoading: boolean
-
-  setSession: (session: Session | null) => void
-  setProfile: (profile: Profile | null) => void
-  setVetProfile: (vp: VetProfile | null) => void
-  setClinicProfile: (cp: ClinicProfile | null) => void
-  fetchProfile: (userId: string) => Promise<void>
-  signOut: () => Promise<void>
-  reset: () => void
-}
-
-export const useAuthStore = create<AuthStore>((set, get) => ({
-  session: null,
-  profile: null,
-  vetProfile: null,
-  clinicProfile: null,
-  organizationProfile: null,
-  isLoading: true,
-
-  setSession: (session) => set({ session }),
-  setProfile: (profile) => set({ profile }),
-  setVetProfile: (vetProfile) => set({ vetProfile }),
-  setClinicProfile: (clinicProfile) => set({ clinicProfile }),
-
-  fetchProfile: async (userId: string) => {
-    const { data: profile } = await supabase
+export const useAuthStore = create<AuthStore>(createAuthState({
+  async loadProfile(userId) {
+    const { data: profile, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('id, user_id, type, role, verified, name, avatar_url, bio, location, phone, country, region, city_slug, created_at, deleted_at')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
+    if (error) throw error
+    if (profile?.deleted_at) throw new Error('account_deleted')
 
-    if (!profile) {
-      set({ isLoading: false })
-      return
-    }
-
-    set({ profile })
-
-    if (profile.type === 'vet') {
-      const { data: vp } = await supabase
-        .from('vet_profiles')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .single()
-      set({ vetProfile: vp ?? null })
-    }
-
-    if (profile.type === 'clinic') {
-      const { data: cp } = await supabase
-        .from('clinic_profiles')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .single()
-      set({ clinicProfile: cp ?? null })
-    }
-
-    if (profile.type === 'fundacion') {
-      const { data: org } = await supabase
-        .from('organization_profiles')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .single()
-      set({ organizationProfile: org ?? null })
-    } else {
-      set({ organizationProfile: null })
-    }
-
-    set({ isLoading: false })
-  },
-
-  signOut: async () => {
-    await supabase.auth.signOut()
-    get().reset()
-  },
-
-  reset: () =>
-    set({
-      session: null,
-      profile: null,
+    const result: AuthProfiles = {
+      profile,
       vetProfile: null,
       clinicProfile: null,
       organizationProfile: null,
-      isLoading: false,
-    }),
+    }
+    if (!profile) return result
+
+    const table = profile.type === 'vet' ? 'vet_profiles'
+      : profile.type === 'clinic' ? 'clinic_profiles'
+      : profile.type === 'fundacion' ? 'organization_profiles' : null
+    if (table) {
+      const { data, error: detailError } = await supabase
+        .from(table).select('*').eq('profile_id', profile.id).maybeSingle()
+      if (detailError) throw detailError
+      if (profile.type === 'vet') result.vetProfile = data
+      if (profile.type === 'clinic') result.clinicProfile = data
+      if (profile.type === 'fundacion') result.organizationProfile = data
+    }
+    return result
+  },
+
+  async signOut() {
+    // Best effort while authenticated. Per-device tokens remain a release task.
+    const profileId = useAuthStore.getState().profile?.id
+    if (profileId) {
+      await supabase.from('profiles').update({ push_token: null }).eq('id', profileId)
+        .then(() => undefined, () => undefined)
+    }
+    const { error } = await supabase.auth.signOut({ scope: 'local' })
+    if (error) throw error
+  },
+
+  clearUserData() {
+    queryClient.clear()
+    useNotificationStore.getState().unsubscribe()
+  },
 }))

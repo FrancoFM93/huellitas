@@ -32,7 +32,8 @@
       "expo-router",
       "expo-localization",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      ["expo-notifications", { "defaultChannel": "default" }]
     ],
     "extra": {
       "router": {},

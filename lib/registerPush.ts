@@ -5,11 +5,13 @@ import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 import Constants, { ExecutionEnvironment } from 'expo-constants'
 import { supabase } from '@/lib/supabase'
+import { getNotificationPath } from '@/lib/notificationRouting'
 
 const isExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient
+const supportsNativePush = !isExpoGo && Platform.OS !== 'web'
 
 export function setNotificationHandler() {
-  if (isExpoGo) return
+  if (!supportsNativePush) return
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowAlert: true,
@@ -22,50 +24,60 @@ export function setNotificationHandler() {
 }
 
 export async function registerForPush(profileId: string): Promise<void> {
-  if (isExpoGo || Platform.OS === 'web') return
-
-  const { status: existing } = await Notifications.getPermissionsAsync()
-  let finalStatus = existing
-
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync()
-    finalStatus = status
-  }
-
-  if (finalStatus !== 'granted') return
+  if (!supportsNativePush) return
 
   try {
-    const projectId = Constants.expoConfig?.extra?.eas?.projectId
+    // Android 13+ will not display the permissions prompt until a channel exists.
+    if (Platform.OS === 'android') {
+      await Notifications.setNotificationChannelAsync('default', {
+        name: 'Huellitas',
+        importance: Notifications.AndroidImportance.HIGH,
+      })
+    }
+    const { status: existing } = await Notifications.getPermissionsAsync()
+    const finalStatus = existing === 'granted'
+      ? existing
+      : (await Notifications.requestPermissionsAsync()).status
+    if (finalStatus !== 'granted') return
+
+    const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId
+    if (!projectId) return
     const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId })
-    await supabase.from('profiles').update({ push_token: token }).eq('id', profileId)
+    const { error } = await supabase.from('profiles').update({ push_token: token }).eq('id', profileId)
+    if (error) console.warn('Push registration could not be saved')
   } catch {
-    // Silently skip if EAS project is not configured yet
+    // Permission/native/network failures must not interrupt sign-in.
+    console.warn('Push registration is unavailable')
   }
 }
 
-export function addNotificationListeners(onTap: (data: Record<string, any>) => void) {
-  if (isExpoGo) return () => {}
-  const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
-    const data = (response.notification.request.content.data ?? {}) as Record<string, any>
-    onTap(data)
-  })
-  // Cold-start: app opened from a tapped push
-  Notifications.getLastNotificationResponseAsync().then((response) => {
-    if (response?.notification.request.content.data) {
-      onTap(response.notification.request.content.data as Record<string, any>)
-    }
-  })
-  return () => responseListener.remove()
+/** The caller queues navigation until the navigator and authenticated profile are ready. */
+export function addNotificationListeners(onTap: (data: Record<string, unknown>) => void) {
+  if (!supportsNativePush) return () => {}
+  let active = true
+  const handled = new Set<string>()
+  const handleResponse = (response: Notifications.NotificationResponse | null) => {
+    if (!active || !response) return
+    const identifier = `${response.notification.request.identifier}:${response.actionIdentifier}`
+    if (handled.has(identifier)) return
+    handled.add(identifier)
+    const metadata = response.notification.request.content.data ?? {}
+    if (getNotificationPath(metadata)) onTap(metadata)
+    // Consume the response so a later ordinary launch does not reopen an old screen.
+    void Notifications.clearLastNotificationResponseAsync().catch(() => {})
+  }
+  const listener = Notifications.addNotificationResponseReceivedListener(handleResponse)
+  void Notifications.getLastNotificationResponseAsync().then(handleResponse).catch(() => {})
+  return () => {
+    active = false
+    listener.remove()
+  }
 }
 
 export function routeFromNotification(
-  data: Record<string, any>,
+  data: Record<string, unknown>,
   navigate: (path: string) => void
 ) {
-  if (data.session_id) navigate(`/monitoring/${data.session_id}`)
-  else if (data.contract_id) navigate(`/adoption/contract/${data.contract_id}`)
-  else if (data.thread_id) navigate(`/messages/${data.thread_id}`)
-  else if (data.post_id) navigate(`/adoption/${data.post_id}`)
-  else if (data.alert_id) navigate(`/alerts/${data.alert_id}`)
-  else if (data.fundraiser_id) navigate(`/fundraising/${data.fundraiser_id}`)
+  const path = getNotificationPath(data)
+  if (path) navigate(path)
 }

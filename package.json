@@ -6,7 +6,10 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "test": "node --no-wasm-code-gc --import tsx --test --test-isolation=none --test-reporter=spec tests/*.test.ts tests/*.test.mjs",
+    "verify": "yarn typecheck && yarn test"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
@@ -26,7 +29,7 @@
     "expo-web-browser": "~55.0.14",
     "i18next": "^25.10.9",
     "react": "19.2.0",
-    "react-dom": "^19.2.4",
+    "react-dom": "19.2.0",
     "react-i18next": "^16.6.6",
     "react-native": "0.83.2",
     "react-native-gesture-handler": "~2.30.0",
@@ -37,8 +40,14 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.11",
     "@types/react": "~19.2.2",
+    "tsx": "4.23.15",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "packageManager": "yarn@1.22.22",
+  "engines": {
+    "node": ">=24.3.0"
+  }
 }

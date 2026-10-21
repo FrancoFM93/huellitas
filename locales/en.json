@@ -24,7 +24,9 @@
     "add": "Add",
     "delete": "Delete",
     "confirm": "Confirm",
-    "optional": "Optional"
+    "optional": "Optional",
+    "retry": "Try again",
+    "load_error": "We could not load this information. Check your connection and try again."
   },
   "auth": {
     "welcome_title": "Huellitas",
@@ -57,7 +59,18 @@
     "full_name": "Full name",
     "full_name_placeholder": "Your name",
     "confirm_password": "Confirm password",
-    "confirm_password_placeholder": "Repeat your password"
+    "confirm_password_placeholder": "Repeat your password",
+    "profile_error_title": "We could not load your profile",
+    "profile_error_body": "Check your connection and try again.",
+    "profile_missing_body": "We could not finish setting up your account. Try again or contact the Huellitas team.",
+    "account_deleted_title": "Account deletion requested",
+    "account_deleted_body": "This account has a pending deletion request and cannot continue in the app.",
+    "retry": "Retry",
+    "sign_out": "Sign out",
+    "error_title": "Error",
+    "callback_loading": "Completing sign-in…",
+    "callback_error": "Sign-in could not be completed. Try again from the login screen.",
+    "back_to_login": "Back to sign in"
   },
   "feed": {
     "title": "🐾 Huellitas",
@@ -118,7 +131,9 @@
     "thank_you_msg": "Your donation was recorded 💚",
     "invalid_amount": "Invalid amount",
     "invalid_amount_msg": "Enter an amount greater than 0",
-    "by": "by {{name}}"
+    "by": "by {{name}}",
+    "unavailable_title": "Donations are not available yet",
+    "unavailable_message": "You can browse campaigns, but Huellitas does not process payments or collect money yet."
   },
   "adopt": {
     "title": "Adopt",
@@ -223,7 +238,10 @@
     "public_no_posts": "No listings yet",
     "post_available": "✅ Available",
     "post_reserved": "⏳ Reserved",
-    "post_adopted": "🏠 Adopted"
+    "post_adopted": "🏠 Adopted",
+    "public_not_found": "This profile is not available.",
+    "professional_not_found": "This account does not have a professional listing available yet.",
+    "public_recent_posts": "Recent listings"
   },
   "messages": {
     "title": "Messages",
@@ -441,7 +459,11 @@
     "health_chronic": "Chronic",
     "health_chronic_desc": "Permanent medication",
     "health_special": "Special needs",
-    "health_special_desc": "Needs extra care"
+    "health_special_desc": "Needs extra care",
+    "age_puppy_label": "Puppy",
+    "age_young_label": "Young",
+    "age_adult_label": "Adult",
+    "age_senior_label": "Senior"
   },
   "contract": {
     "title": "Contract",
@@ -502,7 +524,8 @@
     "login_to_donate_msg": "You need to sign in to donate",
     "thank_you": "Thank you!",
     "thank_you_msg": "Your donation was recorded 💚",
-    "by": "by {{name}}"
+    "by": "by {{name}}",
+    "not_found": "This campaign is not available."
   },
   "vets": {
     "available_now": "Available now",
@@ -539,5 +562,8 @@
     "friday": "Friday",
     "saturday": "Saturday",
     "sunday": "Sunday"
+  },
+  "media": {
+    "upload_error": "The photo could not be uploaded. Please try again."
   }
 }

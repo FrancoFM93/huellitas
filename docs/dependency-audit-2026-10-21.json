@@ -1,0 +1,1717 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-21T18:46:36+00:00",
+  "repository": "https://github.com/FrancoFM93/huellitas",
+  "baseCommit": "b73a34e",
+  "scope": "Recovery checkout on audit/resume-huellitas. Before and after scans both include the existing test-tooling and React DOM manifest/lock changes; only the transitive shell-quote lock entry changed between these scans. No hosted service or production deployment was audited.",
+  "audit": {
+    "tool": "Yarn Classic",
+    "version": "1.22.22",
+    "command": "yarn audit --json --non-interactive",
+    "finalExitCode": 14,
+    "exitCodeNote": "Yarn audit returns a severity bitmask. Exit 14 is the expected low/moderate/high finding result, not a scan failure.",
+    "deduplicationKey": "advisory.url (GHSA URL)",
+    "countingNote": "auditPathEntries count repeated registry findings across dependency paths. Distinct GHSA URLs count separate advisories. Neither number is a count of demonstrated application exploits. A registry advisory can have multiple version-specific numeric IDs."
+  },
+  "before": {
+    "auditPathEntries": 298,
+    "registryAdvisoryIds": 62,
+    "distinctGhsaUrls": 51,
+    "affectedPackages": 18,
+    "pathEntrySeverityCounts": {
+      "info": 0,
+      "low": 9,
+      "moderate": 64,
+      "high": 224,
+      "critical": 1
+    },
+    "distinctGhsaSeverityCounts": {
+      "info": 0,
+      "low": 1,
+      "moderate": 13,
+      "high": 36,
+      "critical": 1
+    },
+    "registryReportedDependencies": 749
+  },
+  "after": {
+    "auditPathEntries": 296,
+    "registryAdvisoryIds": 60,
+    "distinctGhsaUrls": 49,
+    "affectedPackages": 17,
+    "pathEntrySeverityCounts": {
+      "info": 0,
+      "low": 9,
+      "moderate": 64,
+      "high": 223,
+      "critical": 0
+    },
+    "distinctGhsaSeverityCounts": {
+      "info": 0,
+      "low": 1,
+      "moderate": 13,
+      "high": 35,
+      "critical": 0
+    },
+    "registryReportedDependencies": 749
+  },
+  "change": {
+    "package": "shell-quote",
+    "from": "1.8.3",
+    "to": "1.12.0",
+    "parent": "react-devtools-core@6.1.5",
+    "parentRequirement": "^1.6.1",
+    "satisfiesExistingRequirement": true,
+    "method": "Remove only the shell-quote@^1.6.1 lock stanza; run pinned Yarn 1.22.22 install --ignore-scripts --non-interactive, then verify the lock diff.",
+    "manifestUnchanged": true,
+    "directDependencyAdded": false,
+    "resolutionOverrideAdded": false,
+    "lockOnlyDiff": "Only shell-quote version, resolved URL, and integrity changed relative to the pre-refresh lockfile.",
+    "beforeLockSha256": "a88c2b9f88e8c858cf29a068d5a4057bfe7716812c550114bf174b8aa5e6eccf",
+    "afterLockSha256": "d6300263a81d9cb0a9b4901261193e5a02cfc1017a58c50491115e685d96036f",
+    "resolvedGhsaUrls": [
+      "https://github.com/advisories/GHSA-395f-4hp3-45gv",
+      "https://github.com/advisories/GHSA-w7jw-789q-3m8p"
+    ]
+  },
+  "limitations": [
+    "Classification is a source and dependency-chain triage, not a complete exploitability analysis, native-bundle inspection, penetration test, or production verification.",
+    "Expo/React Native list much of their toolchain under ordinary dependencies. Yarn dev=false and its dependency count do not establish mobile runtime reachability.",
+    "Build tools and development servers can process untrusted input or be exposed on a network. Tooling classification does not mean a vulnerability is harmless.",
+    "Registry audit covers declared package versions; it does not reliably detect vendored or prebundled copies. react-devtools-core standalone still embeds an older shell-quote parser, so this refresh is not proof that all DevTools code has been patched.",
+    "The shell-quote critical advisory requires an attacker-controlled object .op value to reach quote() and shell execution. No such Huellitas execution path was found; resolving the registry finding does not demonstrate a previously exploitable mobile critical issue.",
+    "Some packages have no fixed version recorded for the installed line. A patchedRange of <0.0.0 in registry details means no available patched range, not an installable target.",
+    "No Expo/React Native SDK, Metro, navigation, signing, or other major dependency upgrade was attempted in this bounded recovery patch. Remaining findings require a separate supported-SDK upgrade and compatibility/security review."
+  ],
+  "packageExposureAssessments": [
+    {
+      "package": "@babel/core",
+      "classification": "build-tooling",
+      "assessment": "Babel transformation and source-map processing."
+    },
+    {
+      "package": "@xmldom/xmldom",
+      "classification": "build-tooling",
+      "assessment": "Expo plist/XML processing dependencies; no Huellitas application import identified."
+    },
+    {
+      "package": "baseline-browser-mapping",
+      "classification": "build-tooling",
+      "assessment": "Browser-target selection through Browserslist."
+    },
+    {
+      "package": "brace-expansion",
+      "classification": "build-tooling",
+      "assessment": "Glob/minimatch chains in React Native and Expo tools."
+    },
+    {
+      "package": "braces",
+      "classification": "build-tooling",
+      "assessment": "Metro/micromatch file matching; no patched range reported by the registry for the installed line."
+    },
+    {
+      "package": "browserslist",
+      "classification": "build-tooling",
+      "assessment": "Babel and browser-target metadata processing."
+    },
+    {
+      "package": "compression",
+      "classification": "development-server",
+      "assessment": "Expo CLI HTTP compression; exposure depends on whether a developer server is reachable."
+    },
+    {
+      "package": "decode-uri-component",
+      "classification": "runtime-candidate",
+      "assessment": "Present through Expo Router/React Navigation/query-string. React Navigation upstream has a parse path, but the installed Expo Router fork uses URL.searchParams for its main incoming query parser. No Huellitas exploit demonstrated; 0.5.0 is outside the current ^0.2.2 requirement."
+    },
+    {
+      "package": "image-size",
+      "classification": "build-tooling",
+      "assessment": "Metro image/asset processing; malformed build inputs matter. A forced major update requires compatibility validation."
+    },
+    {
+      "package": "js-yaml",
+      "classification": "build-tooling",
+      "assessment": "Jest and xcpretty-related YAML parsing."
+    },
+    {
+      "package": "nanoid",
+      "classification": "runtime-and-build-tooling",
+      "assessment": "React Navigation/Expo Router and PostCSS use this package. Inspected navigation calls use default sizes, rather than attacker-controlled zero/negative sizes involved in these reports."
+    },
+    {
+      "package": "node-forge",
+      "classification": "build-tooling",
+      "assessment": "Expo signing/certificate tooling; no patched range reported for the installed line."
+    },
+    {
+      "package": "postcss",
+      "classification": "build-tooling",
+      "assessment": "Expo web CSS processing, including source maps."
+    },
+    {
+      "package": "shell-quote",
+      "classification": "development-tooling",
+      "assessment": "react-native > react-devtools-core > shell-quote. The React Native integration is under __DEV__ and loads the backend entry. The standalone DevTools bundle includes an older parser used for local REACT_EDITOR handling; updating this separately installed package does not rewrite that embedded bundle."
+    },
+    {
+      "package": "source-map-js",
+      "classification": "build-tooling",
+      "assessment": "PostCSS source-map parsing."
+    },
+    {
+      "package": "sprintf-js",
+      "classification": "build-tooling",
+      "assessment": "Jest/js-yaml formatting chain; no patched range reported for the installed line."
+    },
+    {
+      "package": "uuid",
+      "classification": "build-tooling",
+      "assessment": "xcode tooling chain; the reported fix requires a major-line change."
+    },
+    {
+      "package": "ws",
+      "classification": "runtime-candidate-and-development-server",
+      "assessment": "Present through Supabase Realtime and developer servers. The installed Realtime factory prefers a native global WebSocket when available, as on React Native/browser; installation alone does not establish use of the Node ws implementation in the mobile app."
+    }
+  ],
+  "advisories": [
+    {
+      "ghsa": "GHSA-w7jw-789q-3m8p",
+      "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p",
+      "package": "shell-quote",
+      "title": "shell-quote quote() does not escape newlines in object .op values",
+      "severity": "critical",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1120422,
+          "affectedRange": ">=1.1.0 <=1.8.3",
+          "patchedRange": ">=1.8.4"
+        }
+      ],
+      "installedVersions": [
+        "1.8.3"
+      ],
+      "dependencyPaths": [
+        "react-native>react-devtools-core>shell-quote"
+      ],
+      "exposureClassification": "development-tooling",
+      "registryStatusAfterRefresh": "resolved-in-installed-package",
+      "auditPathEntriesBefore": 1,
+      "auditPathEntriesAfter": 0
+    },
+    {
+      "ghsa": "GHSA-27p8-2357-5qqv",
+      "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193700,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-2v35-w6hq-6mfw",
+      "url": "https://github.com/advisories/GHSA-2v35-w6hq-6mfw",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Uncontrolled recursion in XML serialization leads to DoS",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117894,
+          "affectedRange": "<0.8.13",
+          "patchedRange": ">=0.8.13"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-4w3w-2rp5-g8jm",
+      "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193692,
+          "affectedRange": ">=0.7.0 <=0.8.13",
+          "patchedRange": ">=0.8.14"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-8344-3jmq-59r6",
+      "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Quadratic-time attribute deduplication",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193708,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-93r5-fhx6-vmg9",
+      "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path \u2014 `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193715,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-965w-775f-mr7g",
+      "url": "https://github.com/advisories/GHSA-965w-775f-mr7g",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Quadratic-memory consumption",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193712,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-c7q8-3ch8-vqpv",
+      "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193696,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-f6ww-3ggp-fr8h",
+      "url": "https://github.com/advisories/GHSA-f6ww-3ggp-fr8h",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom has XML injection through unvalidated DocumentType serialization",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117897,
+          "affectedRange": "<0.8.13",
+          "patchedRange": ">=0.8.13"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-j759-j44w-7fr8",
+      "url": "https://github.com/advisories/GHSA-j759-j44w-7fr8",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom has XML node injection through unvalidated comment serialization",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117903,
+          "affectedRange": "<0.8.13",
+          "patchedRange": ">=0.8.13"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-w2rr-34g9-rvrj",
+      "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193689,
+          "affectedRange": ">=0.7.0 <=0.8.13",
+          "patchedRange": ">=0.8.14"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-wh4c-j3r5-mjhp",
+      "url": "https://github.com/advisories/GHSA-wh4c-j3r5-mjhp",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: XML injection via unsafe CDATA serialization allows attacker-controlled markup insertion",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117097,
+          "affectedRange": "<0.8.12",
+          "patchedRange": ">=0.8.12"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-x4fp-j954-r2f4",
+      "url": "https://github.com/advisories/GHSA-x4fp-j954-r2f4",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: End-tag Whitespace-Trim Regex ReDoS \u2014 quadratic backtracking in the 0.8.x end-tag parser",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193709,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-x6wf-f3px-wcqx",
+      "url": "https://github.com/advisories/GHSA-x6wf-f3px-wcqx",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom has XML node injection through unvalidated processing instruction serialization",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117900,
+          "affectedRange": "<0.8.13",
+          "patchedRange": ">=0.8.13"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-3jxr-9vmj-r5cp",
+      "url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp",
+      "package": "brace-expansion",
+      "title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1123897,
+          "affectedRange": "<1.1.16",
+          "patchedRange": ">=1.1.16"
+        },
+        {
+          "registryAdvisoryId": 1123898,
+          "affectedRange": ">=3.0.0 <5.0.7",
+          "patchedRange": ">=5.0.7"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-6j4f-fj2g-mc7p",
+      "url": "https://github.com/advisories/GHSA-6j4f-fj2g-mc7p",
+      "package": "brace-expansion",
+      "title": "brace-expansion: DoS via uncontrolled recursion in parseCommaParts causing stack exhaustion",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1240108,
+          "affectedRange": "<1.1.19",
+          "patchedRange": ">=1.1.19"
+        },
+        {
+          "registryAdvisoryId": 1240111,
+          "affectedRange": ">=4.0.0 <5.0.10",
+          "patchedRange": ">=5.0.10"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-mh99-v99m-4gvg",
+      "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg",
+      "package": "brace-expansion",
+      "title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1130588,
+          "affectedRange": "<1.1.17",
+          "patchedRange": ">=1.1.17"
+        },
+        {
+          "registryAdvisoryId": 1130591,
+          "affectedRange": ">=4.0.0 <5.0.8",
+          "patchedRange": ">=5.0.8"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-qhr7-859c-m2p7",
+      "url": "https://github.com/advisories/GHSA-qhr7-859c-m2p7",
+      "package": "brace-expansion",
+      "title": "brace-expansion: DoS via uncontrolled recursion on nested brace groups causing stack exhaustion",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1240104,
+          "affectedRange": "<1.1.20",
+          "patchedRange": ">=1.1.20"
+        },
+        {
+          "registryAdvisoryId": 1240107,
+          "affectedRange": ">=4.0.0 <5.0.11",
+          "patchedRange": ">=5.0.11"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-rgw5-rvv9-x895",
+      "url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895",
+      "package": "brace-expansion",
+      "title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1130734,
+          "affectedRange": ">=4.0.0 <5.0.9",
+          "patchedRange": ">=5.0.9"
+        },
+        {
+          "registryAdvisoryId": 1130737,
+          "affectedRange": "<1.1.18",
+          "patchedRange": ">=1.1.18"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-vfj7-8cjw-p6xm",
+      "url": "https://github.com/advisories/GHSA-vfj7-8cjw-p6xm",
+      "package": "braces",
+      "title": "braces vulnerable to stack-exhaustion denial of service through deeply nested patterns",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1240992,
+          "affectedRange": "<=3.0.3",
+          "patchedRange": "<0.0.0"
+        }
+      ],
+      "installedVersions": [
+        "3.0.3"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/metro>metro-file-map>micromatch>braces",
+        "expo>@expo/metro>metro>metro-config>metro>metro-file-map>micromatch>braces",
+        "expo>@expo/metro>metro>metro-file-map>micromatch>braces"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 8,
+      "auditPathEntriesAfter": 8
+    },
+    {
+      "ghsa": "GHSA-73wf-gq98-2v4g",
+      "url": "https://github.com/advisories/GHSA-73wf-gq98-2v4g",
+      "package": "browserslist",
+      "title": "Browserslist: Uncaught crash / prototype write via untrusted browserslist-stats.json custom stats (normalizeStats)",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1153172,
+          "affectedRange": "<=4.28.6",
+          "patchedRange": ">=4.28.7"
+        }
+      ],
+      "installedVersions": [
+        "4.28.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>browserslist",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/metro-config>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/metro-config>browserslist"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 11,
+      "auditPathEntriesAfter": 11
+    },
+    {
+      "ghsa": "GHSA-c83g-rgw3-j3cx",
+      "url": "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+      "package": "browserslist",
+      "title": "Browserslist: Unbounded memory growth (no cache eviction) via distinct query results, leading to eventual OOM",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1153171,
+          "affectedRange": "<=4.28.6",
+          "patchedRange": ">=4.28.7"
+        }
+      ],
+      "installedVersions": [
+        "4.28.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro-config>browserslist",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/metro-config>@babel/core>@babel/helper-compilation-targets>browserslist",
+        "expo>@expo/metro-config>browserslist"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 11,
+      "auditPathEntriesAfter": 11
+    },
+    {
+      "ghsa": "GHSA-vc2v-76pw-4v95",
+      "url": "https://github.com/advisories/GHSA-vc2v-76pw-4v95",
+      "package": "compression",
+      "title": "compression vulnerable to Denial of Service via memory leak on premature response close",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1241221,
+          "affectedRange": "<1.8.2",
+          "patchedRange": ">=1.8.2"
+        }
+      ],
+      "installedVersions": [
+        "1.8.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>compression"
+      ],
+      "exposureClassification": "development-server",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 1,
+      "auditPathEntriesAfter": 1
+    },
+    {
+      "ghsa": "GHSA-5p2g-fcmc-qvqq",
+      "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq",
+      "package": "image-size",
+      "title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1239765,
+          "affectedRange": ">=1.2.0 <=2.0.2",
+          "patchedRange": ">=2.0.3"
+        }
+      ],
+      "installedVersions": [
+        "1.2.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>image-size",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>image-size",
+        "expo>@expo/metro>metro>image-size"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 7,
+      "auditPathEntriesAfter": 7
+    },
+    {
+      "ghsa": "GHSA-w3rx-r6r6-pgpr",
+      "url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr",
+      "package": "image-size",
+      "title": "image-size: ICNS parser allows denial of service through an infinite loop",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1239766,
+          "affectedRange": ">=0.6.3 <=2.0.2",
+          "patchedRange": ">=2.0.3"
+        }
+      ],
+      "installedVersions": [
+        "1.2.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>image-size",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>image-size",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>image-size",
+        "expo>@expo/metro>metro>image-size"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 7,
+      "auditPathEntriesAfter": 7
+    },
+    {
+      "ghsa": "GHSA-2883-xcg3-v3hh",
+      "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh",
+      "package": "js-yaml",
+      "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193726,
+          "affectedRange": ">=3.0.0 <3.15.2",
+          "patchedRange": ">=3.15.2"
+        },
+        {
+          "registryAdvisoryId": 1193727,
+          "affectedRange": ">=4.0.0 <4.3.2",
+          "patchedRange": ">=4.3.2"
+        }
+      ],
+      "installedVersions": [
+        "3.14.2",
+        "4.1.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/xcpretty>js-yaml",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml",
+        "react-native>babel-jest>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 3,
+      "auditPathEntriesAfter": 3
+    },
+    {
+      "ghsa": "GHSA-52cp-r559-cp3m",
+      "url": "https://github.com/advisories/GHSA-52cp-r559-cp3m",
+      "package": "js-yaml",
+      "title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1123911,
+          "affectedRange": ">=4.0.0 <4.3.0",
+          "patchedRange": ">=4.3.0"
+        },
+        {
+          "registryAdvisoryId": 1123912,
+          "affectedRange": ">=3.0.0 <3.15.0",
+          "patchedRange": ">=3.15.0"
+        }
+      ],
+      "installedVersions": [
+        "3.14.2",
+        "4.1.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/xcpretty>js-yaml",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml",
+        "react-native>babel-jest>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 3,
+      "auditPathEntriesAfter": 3
+    },
+    {
+      "ghsa": "GHSA-5p4m-2wfm-xmqj",
+      "url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj",
+      "package": "js-yaml",
+      "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1138114,
+          "affectedRange": ">=3.0.0 <3.15.1",
+          "patchedRange": ">=3.15.1"
+        },
+        {
+          "registryAdvisoryId": 1138115,
+          "affectedRange": ">=4.0.0 <4.3.1",
+          "patchedRange": ">=4.3.1"
+        }
+      ],
+      "installedVersions": [
+        "3.14.2",
+        "4.1.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/xcpretty>js-yaml",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml",
+        "react-native>babel-jest>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 3,
+      "auditPathEntriesAfter": 3
+    },
+    {
+      "ghsa": "GHSA-28wg-ghj8-5hjv",
+      "url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv",
+      "package": "nanoid",
+      "title": "nanoid: non-secure generators can loop indefinitely with negative size",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1138811,
+          "affectedRange": "<3.3.16",
+          "patchedRange": ">=3.3.16"
+        }
+      ],
+      "installedVersions": [
+        "3.3.11"
+      ],
+      "dependencyPaths": [
+        "expo-router>@react-navigation/native>nanoid",
+        "expo-router>nanoid",
+        "expo>@expo/cli>@expo/metro-config>postcss>nanoid",
+        "expo>@expo/metro-config>postcss>nanoid"
+      ],
+      "exposureClassification": "runtime-and-build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 4,
+      "auditPathEntriesAfter": 4
+    },
+    {
+      "ghsa": "GHSA-2v37-7h3g-55p8",
+      "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8",
+      "package": "nanoid",
+      "title": "nanoid: custom generators can loop indefinitely when size is zero",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1139427,
+          "affectedRange": "<3.3.18",
+          "patchedRange": ">=3.3.18"
+        }
+      ],
+      "installedVersions": [
+        "3.3.11"
+      ],
+      "dependencyPaths": [
+        "expo-router>@react-navigation/native>nanoid",
+        "expo-router>nanoid",
+        "expo>@expo/cli>@expo/metro-config>postcss>nanoid",
+        "expo>@expo/metro-config>postcss>nanoid"
+      ],
+      "exposureClassification": "runtime-and-build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 4,
+      "auditPathEntriesAfter": 4
+    },
+    {
+      "ghsa": "GHSA-xwg4-73v4-xw9w",
+      "url": "https://github.com/advisories/GHSA-xwg4-73v4-xw9w",
+      "package": "nanoid",
+      "title": "nanoid: Integer Overflow or Wraparound",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1153189,
+          "affectedRange": "<3.3.12",
+          "patchedRange": ">=3.3.12"
+        }
+      ],
+      "installedVersions": [
+        "3.3.11"
+      ],
+      "dependencyPaths": [
+        "expo-router>@react-navigation/native>nanoid",
+        "expo-router>nanoid",
+        "expo>@expo/cli>@expo/metro-config>postcss>nanoid",
+        "expo>@expo/metro-config>postcss>nanoid"
+      ],
+      "exposureClassification": "runtime-and-build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 4,
+      "auditPathEntriesAfter": 4
+    },
+    {
+      "ghsa": "GHSA-86w9-cpqp-85rv",
+      "url": "https://github.com/advisories/GHSA-86w9-cpqp-85rv",
+      "package": "node-forge",
+      "title": "node-forge RSA PKCS#1 v1.5 signature verification accepts extra nested DigestAlgorithm elements",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1240912,
+          "affectedRange": "<=1.4.0",
+          "patchedRange": "<0.0.0"
+        }
+      ],
+      "installedVersions": [
+        "1.4.0"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/code-signing-certificates>node-forge",
+        "expo>@expo/cli>node-forge"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-6g55-p6wh-862q",
+      "url": "https://github.com/advisories/GHSA-6g55-p6wh-862q",
+      "package": "postcss",
+      "title": "PostCSS: Arbitrary file read and information disclosure via attacker-controlled sourceMappingURL in CSS comments",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1124252,
+          "affectedRange": "<=8.5.11",
+          "patchedRange": ">=8.5.12"
+        }
+      ],
+      "installedVersions": [
+        "8.4.49"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>postcss",
+        "expo>@expo/metro-config>postcss"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-r28c-9q8g-f849",
+      "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849",
+      "package": "postcss",
+      "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1139510,
+          "affectedRange": "<=8.5.17",
+          "patchedRange": ">=8.5.18"
+        }
+      ],
+      "installedVersions": [
+        "8.4.49"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>postcss",
+        "expo>@expo/metro-config>postcss"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-395f-4hp3-45gv",
+      "url": "https://github.com/advisories/GHSA-395f-4hp3-45gv",
+      "package": "shell-quote",
+      "title": "shell-quote: Quadratic-complexity Denial of Service in `parse()` (CWE-407)",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1123944,
+          "affectedRange": "<=1.8.4",
+          "patchedRange": ">=1.9.0"
+        }
+      ],
+      "installedVersions": [
+        "1.8.3"
+      ],
+      "dependencyPaths": [
+        "react-native>react-devtools-core>shell-quote"
+      ],
+      "exposureClassification": "development-tooling",
+      "registryStatusAfterRefresh": "resolved-in-installed-package",
+      "auditPathEntriesBefore": 1,
+      "auditPathEntriesAfter": 0
+    },
+    {
+      "ghsa": "GHSA-68fv-2mgg-jv7q",
+      "url": "https://github.com/advisories/GHSA-68fv-2mgg-jv7q",
+      "package": "source-map-js",
+      "title": "source-map-js allows event-loop denial of service through indexed source-map section offsets",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1241209,
+          "affectedRange": ">=1.0.0 <1.2.2",
+          "patchedRange": ">=1.2.2"
+        }
+      ],
+      "installedVersions": [
+        "1.2.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>postcss>source-map-js",
+        "expo>@expo/metro-config>postcss>source-map-js"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-96hv-2xvq-fx4p",
+      "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p",
+      "package": "ws",
+      "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+      "severity": "high",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1123259,
+          "affectedRange": ">=8.0.0 <8.21.0",
+          "patchedRange": ">=8.21.0"
+        },
+        {
+          "registryAdvisoryId": 1123260,
+          "affectedRange": ">=7.0.0 <7.5.11",
+          "patchedRange": ">=7.5.11"
+        }
+      ],
+      "installedVersions": [
+        "7.5.10",
+        "8.20.0"
+      ],
+      "dependencyPaths": [
+        "@supabase/supabase-js>@supabase/realtime-js>ws",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-transform-worker>metro>ws",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-transform-worker>metro>ws",
+        "expo>@expo/cli>ws",
+        "expo>@expo/metro>metro-config>metro>metro-transform-worker>metro>ws",
+        "expo>@expo/metro>metro-transform-worker>metro>ws",
+        "expo>@expo/metro>metro>metro-config>metro>metro-transform-worker>metro>ws",
+        "expo>@expo/metro>metro>metro-transform-worker>metro>ws",
+        "expo>@expo/metro>metro>ws",
+        "react-native>react-devtools-core>ws",
+        "react-native>ws"
+      ],
+      "exposureClassification": "runtime-candidate-and-development-server",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 11,
+      "auditPathEntriesAfter": 11
+    },
+    {
+      "ghsa": "GHSA-6gmq-8vp8-gcm6",
+      "url": "https://github.com/advisories/GHSA-6gmq-8vp8-gcm6",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: XML fragment injection via invalid EntityReference.nodeName during requireWellFormed serialization",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1158518,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-6h8r-xr42-gp59",
+      "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59",
+      "package": "@xmldom/xmldom",
+      "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193705,
+          "affectedRange": ">=0.7.0 <=0.8.14",
+          "patchedRange": ">=0.8.15"
+        }
+      ],
+      "installedVersions": [
+        "0.8.11"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>simple-plist>plist>@xmldom/xmldom",
+        "expo>@expo/config-plugins>@expo/plist>@xmldom/xmldom",
+        "expo>@expo/config>@expo/config-plugins>@expo/plist>@xmldom/xmldom"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 6,
+      "auditPathEntriesAfter": 6
+    },
+    {
+      "ghsa": "GHSA-w5vr-8v7q-w6rv",
+      "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv",
+      "package": "baseline-browser-mapping",
+      "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1193686,
+          "affectedRange": ">=2.0.0 <2.11.0",
+          "patchedRange": ">=2.11.0"
+        }
+      ],
+      "installedVersions": [
+        "2.10.10"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro-config>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/config>@expo/require-utils>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/metro-config>@babel/core>@babel/helper-compilation-targets>browserslist>baseline-browser-mapping",
+        "expo>@expo/metro-config>browserslist>baseline-browser-mapping"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 11,
+      "auditPathEntriesAfter": 11
+    },
+    {
+      "ghsa": "GHSA-f886-m6hf-6m8v",
+      "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v",
+      "package": "brace-expansion",
+      "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1115540,
+          "affectedRange": "<1.1.13",
+          "patchedRange": ">=1.1.13"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 7,
+      "auditPathEntriesAfter": 7
+    },
+    {
+      "ghsa": "GHSA-jxxr-4gwj-5jf2",
+      "url": "https://github.com/advisories/GHSA-jxxr-4gwj-5jf2",
+      "package": "brace-expansion",
+      "title": "brace-expansion: Large numeric range defeats documented `max` DoS protection",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1120311,
+          "affectedRange": ">=5.0.0 <5.0.6",
+          "patchedRange": ">=5.0.6"
+        }
+      ],
+      "installedVersions": [
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 5,
+      "auditPathEntriesAfter": 5
+    },
+    {
+      "ghsa": "GHSA-q2hr-2g5m-vwhr",
+      "url": "https://github.com/advisories/GHSA-q2hr-2g5m-vwhr",
+      "package": "brace-expansion",
+      "title": "brace-expansion: Quadratic-time expansion of the `{a},b}` rewrite causes CPU denial of service",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1240100,
+          "affectedRange": "<1.1.21",
+          "patchedRange": ">=1.1.21"
+        },
+        {
+          "registryAdvisoryId": 1240103,
+          "affectedRange": ">=4.0.0 <5.0.12",
+          "patchedRange": ">=5.0.12"
+        }
+      ],
+      "installedVersions": [
+        "1.1.12",
+        "5.0.5"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/cli>@react-native/dev-middleware>chromium-edge-launcher>rimraf>glob>minimatch>brace-expansion",
+        "expo>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/config>@expo/config-plugins>glob>minimatch>brace-expansion",
+        "expo>@expo/fingerprint>minimatch>brace-expansion",
+        "expo>babel-preset-expo>@react-native/babel-preset>@react-native/babel-plugin-codegen>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>@react-native/codegen>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>glob>minimatch>brace-expansion",
+        "react-native>babel-jest>babel-plugin-istanbul>test-exclude>minimatch>brace-expansion",
+        "react-native>glob>minimatch>brace-expansion"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 12,
+      "auditPathEntriesAfter": 12
+    },
+    {
+      "ghsa": "GHSA-vcc3-ghjq-m6fr",
+      "url": "https://github.com/advisories/GHSA-vcc3-ghjq-m6fr",
+      "package": "decode-uri-component",
+      "title": "decode-uri-component: Denial of service via exponential decoding of malformed percent-encoded input",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1147955,
+          "affectedRange": "<=0.4.2",
+          "patchedRange": ">=0.5.0"
+        }
+      ],
+      "installedVersions": [
+        "0.2.2"
+      ],
+      "dependencyPaths": [
+        "expo-router>@react-navigation/native>@react-navigation/core>query-string>decode-uri-component",
+        "expo-router>query-string>decode-uri-component"
+      ],
+      "exposureClassification": "runtime-candidate",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-h67p-54hq-rp68",
+      "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68",
+      "package": "js-yaml",
+      "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1121859,
+          "affectedRange": "<3.15.0",
+          "patchedRange": ">=3.15.0"
+        },
+        {
+          "registryAdvisoryId": 1121860,
+          "affectedRange": ">=4.0.0 <=4.1.1",
+          "patchedRange": ">=4.2.0"
+        }
+      ],
+      "installedVersions": [
+        "3.14.2",
+        "4.1.1"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/xcpretty>js-yaml",
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml",
+        "react-native>babel-jest>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 3,
+      "auditPathEntriesAfter": 3
+    },
+    {
+      "ghsa": "GHSA-fxqj-rqcc-2cmp",
+      "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp",
+      "package": "postcss",
+      "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1130709,
+          "affectedRange": "<=8.5.22",
+          "patchedRange": ">=8.5.23"
+        }
+      ],
+      "installedVersions": [
+        "8.4.49"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>postcss",
+        "expo>@expo/metro-config>postcss"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-qx2v-qp2m-jg93",
+      "url": "https://github.com/advisories/GHSA-qx2v-qp2m-jg93",
+      "package": "postcss",
+      "title": "PostCSS has XSS via Unescaped </style> in its CSS Stringify Output",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1117015,
+          "affectedRange": "<8.5.10",
+          "patchedRange": ">=8.5.10"
+        }
+      ],
+      "installedVersions": [
+        "8.4.49"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/metro-config>postcss",
+        "expo>@expo/metro-config>postcss"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-hp3w-g68c-fv3c",
+      "url": "https://github.com/advisories/GHSA-hp3w-g68c-fv3c",
+      "package": "sprintf-js",
+      "title": "sprintf-js vulnerable to denial of service through unbounded precision specifiers",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1241202,
+          "affectedRange": "<=1.1.3",
+          "patchedRange": "<0.0.0"
+        }
+      ],
+      "installedVersions": [
+        "1.0.3"
+      ],
+      "dependencyPaths": [
+        "react-native>babel-jest>@jest/transform>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml>argparse>sprintf-js",
+        "react-native>babel-jest>babel-plugin-istanbul>@istanbuljs/load-nyc-config>js-yaml>argparse>sprintf-js"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-w5hq-g745-h8pq",
+      "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq",
+      "package": "uuid",
+      "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1119441,
+          "affectedRange": "<11.1.1",
+          "patchedRange": ">=11.1.1"
+        }
+      ],
+      "installedVersions": [
+        "7.0.3"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/config-plugins>xcode>uuid",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/config-plugins>xcode>uuid",
+        "expo>@expo/config-plugins>xcode>uuid",
+        "expo>@expo/config>@expo/config-plugins>xcode>uuid"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 4,
+      "auditPathEntriesAfter": 4
+    },
+    {
+      "ghsa": "GHSA-58qx-3vcg-4xpx",
+      "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx",
+      "package": "ws",
+      "title": "ws: Uninitialized memory disclosure",
+      "severity": "moderate",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1119108,
+          "affectedRange": ">=8.0.0 <8.20.1",
+          "patchedRange": ">=8.20.1"
+        }
+      ],
+      "installedVersions": [
+        "8.20.0"
+      ],
+      "dependencyPaths": [
+        "@supabase/supabase-js>@supabase/realtime-js>ws",
+        "expo>@expo/cli>ws"
+      ],
+      "exposureClassification": "runtime-candidate-and-development-server",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 2,
+      "auditPathEntriesAfter": 2
+    },
+    {
+      "ghsa": "GHSA-4x5r-pxfx-6jf8",
+      "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8",
+      "package": "@babel/core",
+      "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+      "severity": "low",
+      "registryVariants": [
+        {
+          "registryAdvisoryId": 1123528,
+          "affectedRange": "<=7.29.0",
+          "patchedRange": ">=7.29.6"
+        }
+      ],
+      "installedVersions": [
+        "7.29.0"
+      ],
+      "dependencyPaths": [
+        "expo>@expo/cli>@expo/config>@expo/require-utils>@babel/core",
+        "expo>@expo/cli>@expo/metro-config>@expo/config>@expo/require-utils>@babel/core",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-babel-transformer>@babel/core",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core",
+        "expo>@expo/cli>@expo/metro-config>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-babel-transformer>@babel/core",
+        "expo>@expo/cli>@expo/metro>metro>metro-config>metro>metro-config>metro>metro-babel-transformer>@babel/core",
+        "expo>@expo/config>@expo/require-utils>@babel/core",
+        "expo>@expo/metro-config>@babel/core"
+      ],
+      "exposureClassification": "build-tooling",
+      "registryStatusAfterRefresh": "remaining",
+      "auditPathEntriesBefore": 9,
+      "auditPathEntriesAfter": 9
+    }
+  ]
+}

@@ -24,7 +24,9 @@
     "add": "Agregar",
     "delete": "Eliminar",
     "confirm": "Confirmar",
-    "optional": "Opcional"
+    "optional": "Opcional",
+    "retry": "Reintentar",
+    "load_error": "No pudimos cargar esta información. Revisa tu conexión y vuelve a intentarlo."
   },
   "auth": {
     "welcome_title": "Huellitas",
@@ -57,7 +59,18 @@
     "full_name": "Nombre completo",
     "full_name_placeholder": "Tu nombre",
     "confirm_password": "Confirmar contraseña",
-    "confirm_password_placeholder": "Repite tu contraseña"
+    "confirm_password_placeholder": "Repite tu contraseña",
+    "profile_error_title": "No pudimos cargar tu perfil",
+    "profile_error_body": "Comprueba tu conexión y vuelve a intentarlo.",
+    "profile_missing_body": "No pudimos terminar de preparar tu cuenta. Intenta de nuevo o contacta al equipo de Huellitas.",
+    "account_deleted_title": "Solicitud de eliminación recibida",
+    "account_deleted_body": "Esta cuenta tiene una solicitud de eliminación pendiente y no puede continuar en la app.",
+    "retry": "Reintentar",
+    "sign_out": "Cerrar sesión",
+    "error_title": "Error",
+    "callback_loading": "Completando inicio de sesión…",
+    "callback_error": "No se pudo completar el inicio de sesión. Vuelve a intentarlo desde la pantalla de acceso.",
+    "back_to_login": "Volver al inicio de sesión"
   },
   "feed": {
     "title": "🐾 Huellitas",
@@ -118,7 +131,9 @@
     "thank_you_msg": "Tu donación fue registrada correctamente 💚",
     "invalid_amount": "Monto inválido",
     "invalid_amount_msg": "Ingresa un monto mayor a 0",
-    "by": "por {{name}}"
+    "by": "por {{name}}",
+    "unavailable_title": "Las donaciones aún no están disponibles",
+    "unavailable_message": "Puedes consultar las campañas, pero Huellitas todavía no procesa pagos ni recauda dinero."
   },
   "adopt": {
     "title": "Adoptar",
@@ -223,7 +238,10 @@
     "public_no_posts": "Sin publicaciones todavía",
     "post_available": "✅ Disponible",
     "post_reserved": "⏳ Reservado",
-    "post_adopted": "🏠 Adoptado"
+    "post_adopted": "🏠 Adoptado",
+    "public_not_found": "Este perfil no está disponible.",
+    "professional_not_found": "Esta cuenta aún no tiene una ficha profesional disponible.",
+    "public_recent_posts": "Publicaciones recientes"
   },
   "messages": {
     "title": "Mensajes",
@@ -441,7 +459,11 @@
     "health_chronic": "Crónica",
     "health_chronic_desc": "Medicación permanente",
     "health_special": "Necesidades especiales",
-    "health_special_desc": "Requiere cuidados extra"
+    "health_special_desc": "Requiere cuidados extra",
+    "age_puppy_label": "Cachorro",
+    "age_young_label": "Joven",
+    "age_adult_label": "Adulto",
+    "age_senior_label": "Mayor"
   },
   "contract": {
     "title": "Contrato",
@@ -502,7 +524,8 @@
     "login_to_donate_msg": "Debes iniciar sesión para donar",
     "thank_you": "¡Gracias!",
     "thank_you_msg": "Tu donación fue registrada 💚",
-    "by": "por {{name}}"
+    "by": "por {{name}}",
+    "not_found": "Esta campaña no está disponible."
   },
   "vets": {
     "available_now": "Disponible ahora",
@@ -539,5 +562,8 @@
     "friday": "Viernes",
     "saturday": "Sábado",
     "sunday": "Domingo"
+  },
+  "media": {
+    "upload_error": "No se pudo subir la foto. Vuelve a intentarlo."
   }
 }
